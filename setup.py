@@ -6,8 +6,6 @@ try:
 except ImportError:
     from distutils.core import setup
 
-import os
-import sys
 import flask_restful_extend
 
 setup(
@@ -18,10 +16,10 @@ setup(
     author='anjianshi',
     author_email='anjianshi@gmail.com',
     description='extend flask-restfurl and fix some unreasonable behave',
-    packages=['flask_restful_extend'],
+    py_modules=['flask_restful_extend'],
     zip_safe=False,
     platforms='any',
-    install_requires=['Flask>=0.8'],
+    install_requires=['Flask>=0.8', 'Flask-RESTful'],
     keywords=['flask', 'python', 'rest', 'api'],
     classifiers=[
         'Intended Audience :: Developers',
