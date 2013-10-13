@@ -14,7 +14,7 @@ __version__ = 0.1
 __all__ = ['Extend', 'marshal_with_model']
 
 
-class Extend(object):
+class RESTfulExtend(object):
   def __init__(self, api_instance, support_jsonp=True, fix_unauthorized=False):
     # let flask-restful can support jsonp
     # use jsonp_callback_getter() method to confirm was current request is jsonp request.
