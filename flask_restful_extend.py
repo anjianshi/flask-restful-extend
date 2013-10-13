@@ -8,6 +8,7 @@ include:
   better support to sqlalchemy model return value
 """
 
+from flask.ext import restful
 from flask.ext.restful import fields as _fields, marshal_with as _marshal_with
 from functools import wraps
 
