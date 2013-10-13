@@ -8,7 +8,8 @@ include:
   better support to sqlalchemy model return value
 """
 
-from flask.ext.restful import fields, marshal_with
+from flask.ext.restful import fields as _fields, marshal_with as _marshal_with
+from functools import wraps
 
 __version__ = 0.1
 __all__ = ['RESTfulExtend', 'marshal_with_model']
@@ -44,11 +45,11 @@ class RESTfulExtend(object):
 
 
 _type_map = {
-    'str': fields.String,
-    'int': fields.Integer,
-    'float': fields.Integer,
-    'bool': fields.Boolean,
-    'datetime': fields.DateTime
+    'str': _fields.String,
+    'int': _fields.Integer,
+    'float': _fields.Integer,
+    'bool': _fields.Boolean,
+    'datetime': _fields.DateTime
 }
 
 
@@ -81,9 +82,9 @@ def marshal_with_model(model, excludes=[]):
 
     def decorated(f):
         @wraps(f)
-        @marshal_with(field_definition)
+        @_marshal_with(field_definition)
         def wrapper(*args, **kwargs):
             result = f(*args, **kwargs)
-            return result if not fields.is_indexable_but_not_string(result) else [v for v in result]
+            return result if not _fields.is_indexable_but_not_string(result) else [v for v in result]
         return wrapper
     return decorated
