@@ -11,7 +11,7 @@ include:
 from flask.ext.restful import fields, marshal_with
 
 __version__ = 0.1
-__all__ = ['Extend', 'marshal_with_model']
+__all__ = ['RESTfulExtend', 'marshal_with_model']
 
 
 class RESTfulExtend(object):
