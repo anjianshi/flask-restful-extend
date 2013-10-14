@@ -16,10 +16,10 @@ setup(
     author='anjianshi',
     author_email='anjianshi@gmail.com',
     description='extend flask-restfurl and fix some unreasonable behave',
-    py_modules=['flask_restful_extend'],
+    packages=['flask_restful_extend'],
     zip_safe=False,
     platforms='any',
-    install_requires=['Flask>=0.8', 'Flask-RESTful'],
+    install_requires=['Flask>=0.8', 'Flask-RESTful', 'Flask-SQLAlchemy'],
     keywords=['flask', 'python', 'rest', 'api'],
     classifiers=[
         'Intended Audience :: Developers',
