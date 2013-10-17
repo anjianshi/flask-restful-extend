@@ -15,16 +15,25 @@ class Student(db.Model):
     def cust_func(value, arg_1, arg_2, ...):
         # if valid, return True else return False
         return True
+        
+        # if you want transform the value of the column, 
+        # return a dict, format like this: 
+        # dict(value=xxx)
+        # then the column's value after call the validate_func, is xxx
+        # 如果一个 validate_func 只进行转换操作，不进行检查，最好在命名时，加上 trans_ 前缀，这样可以更清晰的反映它的用途。
 """
 from flask.ext import sqlalchemy as flask_as
 from sqlalchemy.orm import validates as _orm_validates
 from werkzeug.exceptions import BadRequest
+import re
 
 
 predefined_validate_funcs = {
     'min': lambda value, min_val: value >= min_val,
     'max': lambda value, max_val: value <= max_val,
-    'min_length': lambda value, min_val: len(value) >= min_val
+    'min_length': lambda value, min_val: len(value) >= min_val,
+    'match': lambda value, pattern: re.match(pattern, value),
+    'trans_upper': lambda value: dict(value=value.upper())
 }
 
 
@@ -50,16 +59,20 @@ class _ExtendedMeta(_OrigMeta):
             @_orm_validates(*column_names)
             def f(self, column_name, value):
                 # 如果字段值为 None，不进行检查，由 sqlalchemy 根据字段的 nullable 属性确定是否合法
-                if value is not None and not validate_func(value, *validate_args):
-                    #todo: better error reporting
-                    print(
-                        u'db model validate failed: col={}, value={}, func={}, arg={}'.format(
-                            column_name, value, validate_func_name,
-                            ','.join([str(arg) for arg in validate_args])
+                if value is not None:
+                    validate_result = validate_func(value, *validate_args)
+                    
+                    if isinstance(validate_result, dict) and 'value' in validate_result:
+                        return validate_result['value']
+                    elif not validate_result:
+                        #todo: better error reporting for front end
+                        print(
+                            u'db model validate failed: col={}, value={}, func={}, arg={}'.format(
+                                column_name, value, validate_func_name,
+                                ','.join([str(arg) for arg in validate_args])
+                            )
                         )
-                    )
-
-                    raise BadRequest()
+                        raise BadRequest()
                 return value
 
             while True:
