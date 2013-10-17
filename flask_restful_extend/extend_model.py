@@ -39,47 +39,50 @@ predefined_validate_funcs = {
 
 _OrigMeta = flask_as._BoundDeclarativeMeta
 class _ExtendedMeta(_OrigMeta):
+    @classmethod
+    def _make_validate_handler(cls, rule):
+        column_names = rule[0]
+        validate_func = rule[1]
+        validate_args = rule[2:]
+
+        if not isinstance(column_names, list):
+            column_names = [column_names]
+
+        if isinstance(validate_func, str):
+            validate_func_name = validate_func
+            validate_func = predefined_validate_funcs[validate_func]
+        else:
+            validate_func_name = validate_func.__name__
+            
+        @_orm_validates(*column_names)
+        def f(self, column_name, value):
+            # 如果字段值为 None，不进行检查，由 sqlalchemy 根据字段的 nullable 属性确定是否合法
+            if value is not None:
+                validate_result = validate_func(value, *validate_args)
+                
+                if isinstance(validate_result, dict) and 'value' in validate_result:
+                    return validate_result['value']
+                elif not validate_result:
+                    #todo: better error reporting for front end
+                    print(
+                        u'db model validate failed: col={}, value={}, func={}, arg={}'.format(
+                            column_name, value, validate_func_name,
+                            ','.join([str(arg) for arg in validate_args])
+                        )
+                    )
+                    raise BadRequest()
+            return value
+        return f
+    
     def __new__(cls, name, bases, d):
         rule_count = 0
 
         for rule in d.get('validate_rules', []):
-            column_names = rule[0]
-            validate_func = rule[1]
-            validate_args = rule[2:]
-
-            if not isinstance(column_names, list):
-                column_names = [column_names]
-
-            if isinstance(validate_func, str):
-                validate_func_name = validate_func
-                validate_func = predefined_validate_funcs[validate_func]
-            else:
-                validate_func_name = validate_func.__name__
-
-            @_orm_validates(*column_names)
-            def f(self, column_name, value):
-                # 如果字段值为 None，不进行检查，由 sqlalchemy 根据字段的 nullable 属性确定是否合法
-                if value is not None:
-                    validate_result = validate_func(value, *validate_args)
-                    
-                    if isinstance(validate_result, dict) and 'value' in validate_result:
-                        return validate_result['value']
-                    elif not validate_result:
-                        #todo: better error reporting for front end
-                        print(
-                            u'db model validate failed: col={}, value={}, func={}, arg={}'.format(
-                                column_name, value, validate_func_name,
-                                ','.join([str(arg) for arg in validate_args])
-                            )
-                        )
-                        raise BadRequest()
-                return value
-
             while True:
                 rule_count += 1
                 rule_func_name = 'validate_rule_{}'.format(rule_count)
                 if not d.get(rule_func_name):
-                    d[rule_func_name] = f
+                    d[rule_func_name] = cls._make_validate_handler(rule)
                     break
 
         return _OrigMeta.__new__(cls, name, bases, d)
