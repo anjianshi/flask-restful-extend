@@ -5,7 +5,7 @@ from functools import wraps
 _type_map = {
     'str': _fields.String,
     'int': _fields.Integer,
-    'float': _fields.Integer,
+    'float': _fields.Float,
     'bool': _fields.Boolean,
     'datetime': _fields.DateTime
 }
