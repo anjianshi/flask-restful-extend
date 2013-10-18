@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from flask.ext.restful import reqparse
 
-def populate_model(model_or_inst, excludes=None, only=None):
+def populate_model(model_or_inst, excludes=None, only=None, return_args=False):
     """
     传入一个 model 类(model)或者 model 实例(model_inst)
     根据对应的 model 的定义，构建 RequestParser，
@@ -13,6 +13,9 @@ def populate_model(model_or_inst, excludes=None, only=None):
     (若传入的是 model_inst，则不会进行此项检查。因为这种情况下，应该允许用户忽略对某个字段的赋值)
     
     若想用用户提交的数据创建新实例，应直接传入 model 类；若想用用户提交的数据修改现有实例，应传入 model_inst
+    
+    excludes 和 only 用于控制哪些 column 应该被处理
+     return_args 若为 True，则不会进行填充操作，返回解析出来的 args
     """
     if excludes is None:
         excludes = []
@@ -32,8 +35,12 @@ def populate_model(model_or_inst, excludes=None, only=None):
             if not is_inst and not col.nullable:
                 kwargs["required"] = True
             parser.add_argument(col.name, **kwargs)
+    args = parser.parse_args()
     
-    for key, value in parser.parse_args().iteritems():
+    if return_args:
+        return args
+    
+    for key, value in args.iteritems():
         setattr(model_inst, key, value)
     
     return model_inst
