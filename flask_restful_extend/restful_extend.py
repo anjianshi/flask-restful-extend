@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 from flask.ext import restful
 from flask import request
