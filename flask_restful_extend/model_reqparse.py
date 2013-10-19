@@ -47,7 +47,6 @@ def make_request_parser(model_or_inst, excludes=None, only=None):
             "type": _type_dict.get(col_type.__name__, col_type),
             "location": 'json'
         }
-        print kwargs['type']
         if not is_inst and not col.nullable:
             kwargs["required"] = True
         parser.add_argument(col.name, **kwargs)
