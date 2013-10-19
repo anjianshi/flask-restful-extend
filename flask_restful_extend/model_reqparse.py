@@ -1,9 +1,16 @@
 # -*- coding: utf-8 -*-
 from flask.ext.restful import reqparse
+from datetime import datetime
 
 
 def _is_inst(model_or_inst):
     return hasattr(model_or_inst, '_sa_instance_state')
+
+
+_type_dict = {
+    "datetime": lambda time_str: datetime.strptime(time_str, '%Y-%m-%d %H:%M:%S')
+}
+
 
 
 def make_request_parser(model_or_inst, excludes=None, only=None):
@@ -35,10 +42,12 @@ def make_request_parser(model_or_inst, excludes=None, only=None):
         elif (excludes and col.name in excludes) or col.primary_key:
                 continue
             
+        col_type = col.type.python_type
         kwargs = {
-            "type": col.type.python_type,
+            "type": _type_dict.get(col_type.__name__, col_type),
             "location": 'json'
         }
+        print kwargs['type']
         if not is_inst and not col.nullable:
             kwargs["required"] = True
         parser.add_argument(col.name, **kwargs)
