@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from flask.ext.restful import reqparse
 from datetime import datetime
+from flask import request
 
 
 def _is_inst(model_or_inst):
@@ -11,6 +12,13 @@ _type_dict = {
     "datetime": lambda time_str: datetime.strptime(time_str, '%Y-%m-%d %H:%M:%S'),
     "str": unicode
 }
+
+
+class _Parser(reqparse.RequestParser):
+    def add_argument(self, *args, **kwargs):
+        # 根据 request 的 content-type 判断应该从 json 还是 formdata/query_string 中提取用户输入
+        kwargs['location'] = kwargs.pop('location', 'values' if request.json is None else 'json')
+        return super(_Parser, self).add_argument(*args, **kwargs)
 
 
 def make_request_parser(model_or_inst, excludes=None, only=None):
@@ -34,7 +42,7 @@ def make_request_parser(model_or_inst, excludes=None, only=None):
     elif isinstance(only, str) or isinstance(only, unicode):
         excludes = [excludes]
 
-    parser = reqparse.RequestParser()
+    parser = _Parser()
     for col in model_or_inst.__table__.columns:
         if only:
             if col.name not in only:
@@ -43,10 +51,7 @@ def make_request_parser(model_or_inst, excludes=None, only=None):
                 continue
 
         col_type = col.type.python_type
-        kwargs = {
-            "type": _type_dict.get(col_type.__name__, col_type),
-            "location": 'json'
-        }
+        kwargs = {"type": _type_dict.get(col_type.__name__, col_type)}
         if not is_inst and not col.nullable:
             kwargs["required"] = True
         parser.add_argument(col.name, **kwargs)
