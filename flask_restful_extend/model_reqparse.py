@@ -11,8 +11,8 @@ def _is_inst(model_or_inst):
 _type_dict = {
     "datetime": lambda time_str: datetime.strptime(time_str, '%Y-%m-%d %H:%M:%S'),
     "str": unicode,
-    "float": lambda value: None if (isinstance(value, str) or isinstance(value, unicode)) and len(value) == 0 else float(value),
-    "int": lambda value: None if (isinstance(value, str) or isinstance(value, unicode)) and len(value) == 0 else int(value)
+    "float": lambda value: None if isinstance(value, (str, unicode)) and len(value) == 0 else float(value),
+    "int": lambda value: None if isinstance(value, (str, unicode)) and len(value) == 0 else int(value)
 }
 
 
