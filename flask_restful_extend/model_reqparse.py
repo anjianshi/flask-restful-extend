@@ -20,6 +20,12 @@ class RequestParser(reqparse.RequestParser):
     def add_argument(self, *args, **kwargs):
         # 根据 request 的 content-type 判断应该从 json 还是 formdata/query_string 中提取用户输入
         kwargs['location'] = kwargs.pop('location', 'values' if request.json is None else 'json')
+        
+        # 对常见的类型进行封装，使其拥有正确的行为
+        arg_type = kwargs.pop('type', None)
+        if arg_type is not None:
+            kwargs['type'] = _type_dict.get(arg_type.__name__, arg_type)
+        
         return super(RequestParser, self).add_argument(*args, **kwargs)
 
 
@@ -52,8 +58,7 @@ def make_request_parser(model_or_inst, excludes=None, only=None):
         elif (excludes and col.name in excludes) or col.primary_key:
                 continue
 
-        col_type = col.type.python_type
-        kwargs = {"type": _type_dict.get(col_type.__name__, col_type)}
+        kwargs = {"type": col.type.python_type}
         if not is_inst and not col.nullable:
             kwargs["required"] = True
         parser.add_argument(col.name, **kwargs)
