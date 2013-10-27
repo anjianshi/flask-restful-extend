@@ -71,6 +71,7 @@ def populate_model(model_or_inst, *args, **kwargs):
     req_args = parser.parse_args()
 
     for key, value in req_args.iteritems():
-        setattr(model_inst, key, value)
+        if value is not None:
+            setattr(model_inst, key, value)
 
     return model_inst
