@@ -16,11 +16,11 @@ _type_dict = {
 }
 
 
-class _Parser(reqparse.RequestParser):
+class RequestParser(reqparse.RequestParser):
     def add_argument(self, *args, **kwargs):
         # 根据 request 的 content-type 判断应该从 json 还是 formdata/query_string 中提取用户输入
         kwargs['location'] = kwargs.pop('location', 'values' if request.json is None else 'json')
-        return super(_Parser, self).add_argument(*args, **kwargs)
+        return super(RequestParser, self).add_argument(*args, **kwargs)
 
 
 def make_request_parser(model_or_inst, excludes=None, only=None):
@@ -44,7 +44,7 @@ def make_request_parser(model_or_inst, excludes=None, only=None):
     elif isinstance(only, str) or isinstance(only, unicode):
         excludes = [excludes]
 
-    parser = _Parser()
+    parser = RequestParser()
     for col in model_or_inst.__table__.columns:
         if only:
             if col.name not in only:
