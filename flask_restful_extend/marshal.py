@@ -2,12 +2,24 @@
 from flask.ext.restful import fields as _fields, marshal_with as _marshal_with
 from functools import wraps
 
+
+def _wrap_field(field):
+    class WrappedField(field):
+        def format(self, value):
+            return None if value is None else super(WrappedField, self).format(value)
+        
+        def output(self, key, obj):
+            value = _fields.get_value(key if self.attribute is None else self.attribute, obj)
+            return None if value is None else self.format(value)
+    return WrappedField
+
 _type_map = {
-    'str': _fields.String,
-    'int': _fields.Integer,
-    'float': _fields.Float,
-    'bool': _fields.Boolean,
-    'datetime': _fields.DateTime
+    # python_type: flask-restful field
+    'str': _wrap_field(_fields.String),
+    'int': _wrap_field(_fields.Integer),
+    'float': _wrap_field(_fields.Float),
+    'bool': _wrap_field(_fields.Boolean),
+    'datetime': _wrap_field(_fields.DateTime)
 }
 
 
