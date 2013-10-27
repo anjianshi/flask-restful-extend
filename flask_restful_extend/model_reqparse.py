@@ -23,7 +23,7 @@ class RequestParser(reqparse.RequestParser):
         
         # 对常见的类型进行封装，使其拥有正确的行为
         arg_type = kwargs.pop('type', None)
-        if arg_type is not None:
+        if arg_type is not None and hasattr(arg_type, '__name__'):
             kwargs['type'] = _type_dict.get(arg_type.__name__, arg_type)
         
         return super(RequestParser, self).add_argument(*args, **kwargs)
