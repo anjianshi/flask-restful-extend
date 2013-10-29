@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
+__all__ = ['marshal_with_model']
+
 from flask.ext.restful import fields as _fields, marshal_with as _marshal_with
 from functools import wraps
+import time
 
 
 def _wrap_field(field):
@@ -13,13 +16,24 @@ def _wrap_field(field):
             return None if value is None else self.format(value)
     return WrappedField
 
+
+class _DateTimeField(_fields.Raw):
+    """Return a timestamp"""
+
+    def format(self, value):
+        try:
+            return time.mktime(value.timetuple())
+        except AttributeError as ae:
+            raise _fields.MarshallingException(ae)
+
+
 _type_map = {
     # python_type: flask-restful field
     'str': _wrap_field(_fields.String),
     'int': _wrap_field(_fields.Integer),
     'float': _wrap_field(_fields.Float),
     'bool': _wrap_field(_fields.Boolean),
-    'datetime': _wrap_field(_fields.DateTime)
+    'datetime': _wrap_field(_DateTimeField)
 }
 
 
