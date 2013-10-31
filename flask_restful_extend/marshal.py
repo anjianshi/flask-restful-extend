@@ -25,13 +25,21 @@ class _DateTimeField(_fields.Raw):
             return time.mktime(value.timetuple())
         except AttributeError as ae:
             raise _fields.MarshallingException(ae)
+        
+        
+class _FloatField(_fields.Raw):
+    def format(self, value):
+        try:
+            return float(value)
+        except ValueError as ve:
+            raise _fields.MarshallingException(ve)
 
 
 _type_map = {
     # python_type: flask-restful field
     'str': _wrap_field(_fields.String),
     'int': _wrap_field(_fields.Integer),
-    'float': _wrap_field(_fields.Float),
+    'float': _wrap_field(_FloatField),
     'bool': _wrap_field(_fields.Boolean),
     'datetime': _wrap_field(_DateTimeField)
 }
