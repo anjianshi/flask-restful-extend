@@ -16,7 +16,71 @@ _type_dict = {
 }
 
 
+class _ExtendedArgument(reqparse.Argument):
+    def parse(self, request):
+        source = self.source(request)
+
+        results = []
+        
+        for operator in self.operators:
+            name = self.name + operator.replace("=", "", 1)
+            if name in source:
+                # Account for MultiDict and regular dict
+                if hasattr(source, "getlist"):
+                    values = source.getlist(name)
+                else:
+                    values = [source.get(name)]
+
+                for value in values:
+                    # === custom ===
+                    if value is None:
+                        continue;
+                    # === end ===
+                    
+                    if not self.case_sensitive:
+                        value = value.lower()
+                    if self.choices and value not in self.choices:
+                        self.handle_validation_error(ValueError(
+                            u"{0} is not a valid choice".format(value)))
+                    try:
+                        value = self.convert(value, operator)
+                    except Exception as error:
+                        if self.ignore:
+                            continue
+
+                        self.handle_validation_error(error)
+
+                    results.append(value)
+
+        if not results and self.required:
+            if isinstance(self.location, six.string_types):
+                error_msg = u"{0} is required in {1}".format(
+                    self.name,
+                    self.location
+                )
+            else:
+                error_msg = u"{0} is required in {1}".format(
+                    self.name,
+                    ' or '.join(self.location)
+                )
+            self.handle_validation_error(ValueError(error_msg))
+
+        if not results:
+            return self.default
+
+        if self.action == 'append':
+            return results
+
+        if self.action == 'store' or len(results) == 1:
+            return results[0]
+        return results
+
+
 class RequestParser(reqparse.RequestParser):
+    def __init__(self, *args, **kwargs):
+        kwargs['argument_class'] = kwargs.pop('argument_class', _ExtendedArgument)
+        super(RequestParser, self).__init__(*args, **kwargs)
+    
     def add_argument(self, *args, **kwargs):
         # 根据 request 的 content-type 判断应该从 json 还是 formdata/query_string 中提取用户输入
         kwargs['location'] = kwargs.pop('location', 'values' if request.json is None else 'json')
