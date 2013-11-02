@@ -121,7 +121,7 @@ class RequestParser(reqparse.RequestParser):
             # 因此，现在在 req parser 中，添加了一个 for_populate 参数。
             # 在 for_populate 为 True 的情况下，未出现的参数不会让它出现在解析出来的参数列表里。
             # 而 null 值参数就会将参数值设为 None，使得其最终能够被写入数据库。
-            arg_source = arg.source()
+            arg_source = arg.source(req)
             if len(arg_source) == 0 and for_populate:
                 continue
             else:
