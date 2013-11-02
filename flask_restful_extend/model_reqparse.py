@@ -2,6 +2,7 @@
 from flask.ext.restful import reqparse
 from datetime import datetime
 from flask import request
+import six
 
 
 def _is_inst(model_or_inst):
@@ -17,8 +18,15 @@ _type_dict = {
 
 
 class _ExtendedArgument(reqparse.Argument):
-    def parse(self, request):
-        source = self.source(request)
+    def parse(self, request, source=None):
+        # === custom ===
+        # 提升性能。 req parser 为了确认某个参数是否存在于请求中，需要调用此参数的 source() 方法。
+        # 而此参数的 parse() 方法在解析参数值时还要再调用一次 source() 这就导致性能下降。
+        # 因此，把执行机制改成：req parser 在调用参数的 parse() 方法时，把刚才已经提取好的 source 传给它， parse() 方法就不用在调用一次 source() 了。
+        
+        if source is None:
+            source = self.source(request)
+        # === end ===
 
         results = []
         
@@ -33,8 +41,10 @@ class _ExtendedArgument(reqparse.Argument):
 
                 for value in values:
                     # === custom ===
+                    # 若传入的是 null (None)，不对其进行格式化，以避免报错
+                    # 最终，其值会被设为 self.default (默认是 None)
                     if value is None:
-                        continue;
+                        continue
                     # === end ===
                     
                     if not self.case_sensitive:
@@ -91,6 +101,35 @@ class RequestParser(reqparse.RequestParser):
             kwargs['type'] = _type_dict.get(arg_type.__name__, arg_type) if hasattr(arg_type, '__name__') else arg_type
         
         return super(RequestParser, self).add_argument(*args, **kwargs)
+    
+    def parse_args(self, req=None, for_populate=False):
+        """Parse all arguments from the provided request and return the results
+        as a Namespace
+        """
+        if req is None:
+            req = request
+
+        namespace = self.namespace_class()
+
+        for arg in self.args:
+            # === custom ===
+            # 在原来的流程下，一个参数无论是用户没有提交，还是提交了 null 值，在解析出来的参数列表里都会把它的值设为 None
+            # 这在一般情况下没问题，但在 populate 模式（用于填充 model instance）下会出错。
+            # 照理说 populate 模式下，若用户没提交此参数，应忽略它；若提交的值是 null，则应把 instance 的对应字段设为 None
+            # 但现在两种情况下，参数的值都是 None，导致 populate 方法没办法进行正确的判断。
+            #
+            # 因此，现在在 req parser 中，添加了一个 for_populate 参数。
+            # 在 for_populate 为 True 的情况下，未出现的参数不会让它出现在解析出来的参数列表里。
+            # 而 null 值参数就会将参数值设为 None，使得其最终能够被写入数据库。
+            arg_source = arg.source()
+            if len(arg_source) == 0 and for_populate:
+                continue
+            else:
+                value = arg.parse(req, arg_source)
+                namespace[arg.dest or arg.name] = value
+            # === end ===
+
+        return namespace
 
 
 def make_request_parser(model_or_inst, excludes=None, only=None):
@@ -129,18 +168,17 @@ def make_request_parser(model_or_inst, excludes=None, only=None):
     return parser
 
 
-def populate_model(model_or_inst, *args, **kwargs):
+def populate_model(model_or_inst, excludes=None, only=None):
     """
     调用 make_request_parser() 构建一个 RequestParser 并用它提取用户输入，填充到指定的 model_inst 中。
     (若传入的是 model 类，会创建一个它的实例，并将其作为 model_inst)
     """
     model_inst = model_or_inst if _is_inst(model_or_inst) else model_or_inst()
 
-    parser = make_request_parser(model_or_inst, *args, **kwargs)
-    req_args = parser.parse_args()
+    parser = make_request_parser(model_or_inst, excludes, only)
+    req_args = parser.parse_args(for_populate=True)
 
     for key, value in req_args.iteritems():
-        if value is not None:
-            setattr(model_inst, key, value)
+        setattr(model_inst, key, value)
 
     return model_inst
