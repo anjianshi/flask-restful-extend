@@ -3,10 +3,12 @@ from flask import json
 import types
 from datetime import datetime
 import time
+from decimal import Decimal
 
 _predefined_json_encoders = [
     (types.GeneratorType, lambda value: [i for i in value]),
-    (datetime, lambda value: time.mktime(value.timetuple()))
+    (datetime, lambda value: time.mktime(value.timetuple())),
+    (Decimal, lambda v: float(v))
 ]
 _predefined_common_json_encoders = []
 
