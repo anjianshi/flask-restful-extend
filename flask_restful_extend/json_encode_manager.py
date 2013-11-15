@@ -10,7 +10,7 @@ def _transform_iterable_obj(obj):
     if hasattr(obj, '__iter__'):
         return [i for i in obj]
     else:
-        raise TypeError()
+        raise _CantEncodeObjException()
 
 _predefined_json_encoders = [
     (datetime, lambda value: time.mktime(value.timetuple())),
@@ -19,6 +19,10 @@ _predefined_json_encoders = [
 _predefined_common_json_encoders = [
     _transform_iterable_obj
 ]
+
+
+class _CantEncodeObjException(Exception):
+    pass
 
 
 class JSONEncodeManager(object):
@@ -60,6 +64,6 @@ class JSONEncodeManager(object):
             else:
                 try:
                     return encoder(o)
-                except TypeError:
+                except _CantEncodeObjException:
                     pass
         return self.flask_json_encoder.default(o)
