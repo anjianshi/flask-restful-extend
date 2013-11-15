@@ -5,12 +5,20 @@ from datetime import datetime
 import time
 from decimal import Decimal
 
+
+def _transform_iterable_obj(obj):
+    if hasattr(obj, '__iter__'):
+        return [i for i in obj]
+    else:
+        raise TypeError()
+
 _predefined_json_encoders = [
-    (types.GeneratorType, lambda value: [i for i in value]),
     (datetime, lambda value: time.mktime(value.timetuple())),
     (Decimal, lambda v: float(v))
 ]
-_predefined_common_json_encoders = []
+_predefined_common_json_encoders = [
+    _transform_iterable_obj
+]
 
 
 class JSONEncodeManager(object):
