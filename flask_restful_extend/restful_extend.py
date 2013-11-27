@@ -19,10 +19,6 @@ class RESTfulExtend(object):
             api_instance.json_encoder = JSONEncodeManager()
             api_instance.representation('application/json')(self.output_json_with_jsonp)
 
-        # let flask-restful don't popup an auth dialog when app call abort(401)
-        if fix_unauthorized:
-            restful.unauthorized = lambda resp, realm: resp
-
     def output_json_with_jsonp(self, data, code, headers=None):
         # encode json (copy from output_json)
         settings = {
