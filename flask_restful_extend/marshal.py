@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-__all__ = ['marshal_with_model']
-
 from flask.ext.restful import fields as _fields, marshal_with as _marshal_with
 from functools import wraps
 import time
@@ -10,7 +8,7 @@ def _wrap_field(field):
     class WrappedField(field):
         def format(self, value):
             return None if value is None else super(WrappedField, self).format(value)
-        
+
         def output(self, key, obj):
             value = _fields.get_value(key if self.attribute is None else self.attribute, obj)
             return None if value is None else self.format(value)
@@ -25,8 +23,8 @@ class _DateTimeField(_fields.Raw):
             return time.mktime(value.timetuple())
         except AttributeError as ae:
             raise _fields.MarshallingException(ae)
-        
-        
+
+
 class _FloatField(_fields.Raw):
     def format(self, value):
         try:
