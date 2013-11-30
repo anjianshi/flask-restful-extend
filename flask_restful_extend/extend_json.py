@@ -5,21 +5,21 @@ from json_encode_manager import JSONEncodeManager
 import json
 
 
-def enhance_json_encode(api_instance):
+def enhance_json_encode(api_instance, extra_settings=None):
     """用 :class:`JSONEncodeManager` 代替 Flask-RESTful 默认的 output_json 函数。"""
     api_instance.json_encoder = JSONEncodeManager()
 
+    dumps_settings = {} if extra_settings is None else extra_settings
+    dumps_settings.setdefault('ensure_ascii', False)
+
     @api_instance.representation('application/json')
     def output_json(data, code, headers=None):
-        # encode json (copy from flask-restful output_json)
-        settings = {
-            'default': api_instance.json_encoder
-        }
         if current_app.debug:
-            settings.setdefault('indent', 4)
-            settings.setdefault('sort_keys', True)
-        dumped = json.dumps(data, **settings)
-        if 'indent' in settings:
+            dumps_settings.setdefault('indent', 4)
+            dumps_settings.setdefault('sort_keys', True)
+
+        dumped = json.dumps(data, **dumps_settings)
+        if 'indent' in dumps_settings:
             dumped += '\n'
 
         resp = make_response(dumped, code)
