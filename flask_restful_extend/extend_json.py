@@ -10,6 +10,7 @@ def enhance_json_encode(api_instance, extra_settings=None):
     api_instance.json_encoder = JSONEncodeManager()
 
     dumps_settings = {} if extra_settings is None else extra_settings
+    dumps_settings['default'] = api_instance.json_encoder
     dumps_settings.setdefault('ensure_ascii', False)
 
     @api_instance.representation('application/json')
