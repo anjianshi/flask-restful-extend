@@ -47,7 +47,6 @@ def support_jsonp(api_instance, callback_name_source='jsonp'):
             callback = request.args.get(callback_name_source, False) if not callable(callback_name_source) \
                 else callback_name_source()
             if callback:
-                resp.headers['Content-Type'] = 'application/javascript'
                 resp.set_data(str(callback) + '(' + resp.get_data() + ')')
 
         return resp
