@@ -7,9 +7,6 @@ import time
 def _wrap_field(field):
     """对原始的 field 格式化函数进行包裹，以优化其行为"""
     class WrappedField(field):
-        def format(self, value):
-            return None if value is None else super(WrappedField, self).format(value)
-
         def output(self, key, obj):
             value = _fields.get_value(key if self.attribute is None else self.attribute, obj)
 
