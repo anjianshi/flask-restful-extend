@@ -5,19 +5,22 @@ import time
 
 
 def _wrap_field(field):
+    """对原始的 field 格式化函数进行包裹，以优化其行为"""
     class WrappedField(field):
         def format(self, value):
             return None if value is None else super(WrappedField, self).format(value)
 
         def output(self, key, obj):
             value = _fields.get_value(key if self.attribute is None else self.attribute, obj)
+
+            # 对于所有字段，碰到 null(None) 值时，都直接返回 null，而不是返回一个默认值（如： int => 0）
+            # 若不这样做，客户端没法确定一个字段（例如值为 0 的 int 字段）到底是赋的值就是0还是没赋值
             return None if value is None else self.format(value)
     return WrappedField
 
 
 class _DateTimeField(_fields.Raw):
-    """Return a timestamp"""
-
+    """碰到 datetime 值时，将其转换为 timestamp 再返回"""
     def format(self, value):
         try:
             return time.mktime(value.timetuple())
@@ -26,6 +29,9 @@ class _DateTimeField(_fields.Raw):
 
 
 class _FloatField(_fields.Raw):
+    """Flask-RESTful 对于 float 默认会将其转换成字符串再返回。这样可以就用一些类似科学计数法的方式表达特殊的小数。
+    但这个行为在大部分情况下没有意义，还使得客户端必须进行一次类型转换。
+    因此，把此行为改成直接返回 float"""
     def format(self, value):
         try:
             return float(value)
@@ -45,14 +51,14 @@ _type_map = {
 
 def marshal_with_model(model, excludes=[]):
     """
-      todo: support KeyedTuple
+      todo: 支持 KeyedTuple
 
-      help view methods return orm model object more easily (only face to flask-sqlalchemy)
-      1. transform columns in model to fields that flask-restful can understand.
-         use the 'excludes' argument, you can specify columns shouldn't appear in return value
-      2. when you return query object directly, auto transform it to list
+      让视图函数能够更方便地返回 ORM model 对象（仅针对 flask-sqlalchemy）
+      1. 把 model 中的 column 转换成 flask-restful 能识别的 fields
+         可通过 `excludes` 参数指定要排除的 column
+      2. 如果视图函数返回的是 query 对象（而不是单个的 model 对象），则把它转化成 list
 
-      example：
+      例子：
       model：
       Student
         id int
@@ -64,7 +70,7 @@ def marshal_with_model(model, excludes=[]):
         def get(self):
           return Student.query
 
-      return value to client：
+      客户端接收到的返回值：
       [{"name": "student_a", "age": "16"}, {"name": "student_b", "age": 18}]
     """
     field_definition = {}
