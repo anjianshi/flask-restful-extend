@@ -12,15 +12,15 @@ class Student(db.Model):
         ('name', cust_func, arg_1, arg_2, ...)
     ]
 
-def cust_func(value, arg_1, arg_2, ...):
-    # if valid, return True else return False
-    return True
+    def cust_func(value, arg_1, arg_2, ...):
+        # if valid, return True else return False
+        return True
 
-    # if you want transform the value of the column,
-    # return a dict, format like this:
-    # dict(value=xxx)
-    # then the column's value after call the validate_func, is xxx
-    # 如果一个 validate_func 只进行转换操作，不进行检查，最好在命名时，加上 trans_ 前缀，这样可以更清晰的反映它的用途。
+        # if you want transform the value of the column,
+        # return a dict, format like this:
+        # dict(value=xxx)
+        # then the column's value after call the validate_func, is xxx
+        # 如果一个 validate_func 只进行转换操作，不进行检查，最好在命名时，加上 trans_ 前缀，这样可以更清晰的反映它的用途。
 """
 
 from flask.ext import sqlalchemy as flask_as
