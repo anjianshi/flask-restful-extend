@@ -16,7 +16,7 @@ class Student(db.Model):
         # if valid, return True else return False
         return True
 
-        # if you want transform the value of the column, 
+        # if you want transform the value of the column,
         # return a dict, format like this:
         # dict(value=xxx)
         # then the column's value after call the validate_func, is xxx
@@ -33,6 +33,9 @@ predefined_validate_funcs = {
     'min': lambda value, min_val: value >= min_val,
     'max': lambda value, max_val: value <= max_val,
     'min_length': lambda value, min_val: len(value) >= min_val,
+    # 定义数据库字段时，本身就会限制其最大长度。但此验证器仍然有必要存在。
+    # 此验证器验证失败时，会终止操作，抛出异常。而数据库在某些情况下可能只是截断字符串，不报错，导致问题不会被发现。
+    'max_length': lambda value, max_val: len(value) <= max_val,
     'match': lambda value, pattern: re.match(pattern, value),
     'trans_upper': lambda value: dict(value=value.upper())
 }
@@ -54,13 +57,13 @@ class _ExtendedMeta(_OrigMeta):
             validate_func = predefined_validate_funcs[validate_func]
         else:
             validate_func_name = validate_func.__name__
-            
+
         @_orm_validates(*column_names)
         def f(self, column_name, value):
             # 如果字段值为 None，不进行检查，由 sqlalchemy 根据字段的 nullable 属性确定是否合法
             if value is not None:
                 validate_result = validate_func(value, *validate_args)
-                
+
                 if isinstance(validate_result, dict) and 'value' in validate_result:
                     return validate_result['value']
                 elif not validate_result:
@@ -74,7 +77,7 @@ class _ExtendedMeta(_OrigMeta):
                     raise BadRequest()
             return value
         return f
-    
+
     def __new__(cls, name, bases, d):
         rule_count = 0
 
