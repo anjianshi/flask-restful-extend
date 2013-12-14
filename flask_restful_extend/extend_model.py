@@ -23,8 +23,7 @@ class Student(db.Model):
         # 如果一个 validate_func 只进行转换操作，不进行检查，最好在命名时，加上 trans_ 前缀，这样可以更清晰的反映它的用途。
 """
 
-from flask.ext import sqlalchemy as flask_as
-from sqlalchemy.orm import validates as _orm_validates
+from sqlalchemy.orm.mapper import Mapper
 from werkzeug.exceptions import BadRequest
 import re
 
@@ -41,57 +40,77 @@ predefined_validate_funcs = {
 }
 
 
-_OrigMeta = flask_as._BoundDeclarativeMeta
-class _ExtendedMeta(_OrigMeta):
-    @classmethod
-    def _make_validate_handler(cls, rule):
-        column_names = rule[0]
-        validate_func = rule[1]
-        validate_args = rule[2:]
+def extend_model():
+    """must called before create db instance"""
 
-        if not isinstance(column_names, list):
-            column_names = [column_names]
+    def make_validate_handler(rules):
+        formatted_rules = []
+        for rule in rules:
+            validate_func = rule[0]
+            if isinstance(validate_func, str):
+                validate_func_name = validate_func
+                validate_func = predefined_validate_funcs[validate_func]
+            else:
+                validate_func_name = validate_func.__name__
 
-        if isinstance(validate_func, str):
-            validate_func_name = validate_func
-            validate_func = predefined_validate_funcs[validate_func]
-        else:
-            validate_func_name = validate_func.__name__
+            formatted_rule = [validate_func, validate_func_name]
+            formatted_rule.extend(rule[1:])
+            formatted_rules.append(formatted_rule)
 
-        @_orm_validates(*column_names)
         def f(self, column_name, value):
             # 如果字段值为 None，不进行检查，由 sqlalchemy 根据字段的 nullable 属性确定是否合法
             if value is not None:
-                validate_result = validate_func(value, *validate_args)
+                for rule in formatted_rules:
+                    validate_func = rule[0]
+                    validate_func_name = rule[1]
+                    validate_args = rule[2:]
 
-                if isinstance(validate_result, dict) and 'value' in validate_result:
-                    return validate_result['value']
-                elif not validate_result:
-                    #todo: better error reporting for front end
-                    print(
-                        u'db model validate failed: col={}, value={}, func={}, arg={}'.format(
-                            column_name, value, validate_func_name,
-                            ','.join([str(arg) for arg in validate_args])
+                    validate_result = validate_func(value, *validate_args)
+
+                    if isinstance(validate_result, dict) and 'value' in validate_result:
+                        value = validate_result['value']
+                    elif not validate_result:
+                        #todo: better error reporting for front end
+                        print(
+                            u'db model validate failed: col={}, value={}, func={}, arg={}'.format(
+                                column_name, value, validate_func_name,
+                                ','.join([str(arg) for arg in validate_args])
+                            )
                         )
-                    )
-                    raise BadRequest()
+                        raise BadRequest()
             return value
         return f
 
-    def __new__(cls, name, bases, d):
-        rule_count = 0
+    _orig_configure_class_instrumentation = Mapper._configure_class_instrumentation
 
-        for rule in d.get('validate_rules', []):
-            while True:
-                rule_count += 1
-                rule_func_name = 'validate_rule_{}'.format(rule_count)
-                if not d.get(rule_func_name):
-                    d[rule_func_name] = cls._make_validate_handler(rule)
-                    break
+    def _new_configure_class_instrumentation(self):
+        return_value = _orig_configure_class_instrumentation(self)
 
-        return _OrigMeta.__new__(cls, name, bases, d)
+        if hasattr(self.class_, 'validate_rules'):
+            rule_dict = {
+                # col_name: [
+                #   (cust_func, arg_1, arg_2, ...)
+                #   (cust_func2, arg_1, arg_2, ...)
+                #   ...
+                # ]
+            }
 
+            for orig_rule in self.class_.validate_rules:
+                column_names = orig_rule[0]
+                if not isinstance(column_names, list):
+                    column_names = [column_names]
 
-def extend_model():
-    """must called before create db instance"""
-    flask_as._BoundDeclarativeMeta = _ExtendedMeta
+                for name in column_names:
+                    rules = rule_dict.get(name, [])
+                    rules.append(orig_rule[1:])
+                    rule_dict[name] = rules
+
+            for column_name, rules in rule_dict.iteritems():
+                method = make_validate_handler(rules)
+                self.validators = self.validators.union(
+                    {column_name: (method, False)}
+                )
+
+        return return_value
+
+    Mapper._configure_class_instrumentation = _new_configure_class_instrumentation
