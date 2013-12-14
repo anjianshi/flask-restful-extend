@@ -24,7 +24,6 @@ class Student(db.Model):
 """
 
 from sqlalchemy.orm.mapper import Mapper
-from werkzeug.exceptions import BadRequest
 import re
 
 
@@ -38,6 +37,10 @@ predefined_validate_funcs = {
     'match': lambda value, pattern: re.match(pattern, value),
     'trans_upper': lambda value: dict(value=value.upper())
 }
+
+
+class ModelInvalid(Exception):
+    code = 400
 
 
 def extend_model():
@@ -70,14 +73,10 @@ def extend_model():
                     if isinstance(validate_result, dict) and 'value' in validate_result:
                         value = validate_result['value']
                     elif not validate_result:
-                        #todo: better error reporting for front end
-                        print(
-                            u'db model validate failed: col={}, value={}, func={}, arg={}'.format(
-                                column_name, value, validate_func_name,
-                                ','.join([str(arg) for arg in validate_args])
-                            )
-                        )
-                        raise BadRequest()
+                        raise ModelInvalid(u'db model validate failed: col={}, value={}, func={}, arg={}'.format(
+                            column_name, value, validate_func_name,
+                            ','.join([str(arg) for arg in validate_args])
+                        ))
             return value
         return f
 

@@ -21,10 +21,13 @@ class ErrorHandledApi(restful.Api):
             　　　　message: error message
             ｝
 
-        此函数能把 werkzeug 的 HTTPException 改写成 flask_restful 能识别的形式
+        此函数能把 werkzeug 的 HTTPException 和带 code 属性的标准 python exception
+        改写成 flask_restful 能识别的形式
         """
         if hasattr(e, 'description'):
             e.data = dict(message=e.description)
+        elif hasattr(e, 'code') and hasattr(e, 'message') and not hasattr(e, 'data'):
+            e.data = dict(message=e.message)
         return super(ErrorHandledApi, self).handle_error(e)
 
     def unauthorized(self, response):
