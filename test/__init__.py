@@ -8,8 +8,8 @@ import model_model as model
 from project import *
 
 
-#from json_test import JSONTestCase
-#from model_test import SQLAlchemyTestCase
+from json_test import JSONTestCase
+from model_test import SQLAlchemyTestCase
 from api_test import APITestCase
 
 """

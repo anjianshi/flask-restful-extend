@@ -6,6 +6,7 @@ from model_model import *
 import model_route
 from flask import json
 from flask_restful_extend.extend_model import ModelInvalid
+import time
 
 
 conn = MySQLdb.connect(host="localhost", user="root", passwd="609888", charset='utf8')
@@ -46,35 +47,45 @@ class SQLAlchemyTestCase(unittest.TestCase):
             e = cm.exception
             self.assertRegexpMatches(e.message, '^db model validate failed:')
 
-
-
-    """def trans_entity_data(self, student, student_id):
-        trans_student = dict(id=student_id)
-        for key, value in student.iteritems():
-            if key == 'created':
-                value = time.mktime(value.timetuple())
-            elif key == 'points':
-                value = float(value)
-            elif isinstance(value, str):
-                value = unicode(value)
-            trans_student[unicode(key)] = value
-        return trans_student"""
-
     def test_marshal(self):
-        return
-        # 测试对单个实例的转换，以及对 datetime 和 float 等类型及其它类型的 null 值的处理
+        # 测试：
+        # 1. 对单个实例的转换
+        # 2. 对 datetime 和 float 等类型的处理
+        # 3. 对各种类型的 null 值的处理
         self.assertEqual(
-            self.trans_student_data(sample_data['students'][2], 3),
+            self.trans_entity_data(sample_data['normal_entities'][0], 1),
             json.loads(self.app.get('/marshal/?type=1').data)
         )
-
+        self.assertEqual(
+            self.trans_entity_data(sample_data['normal_entities'][1], 2),
+            json.loads(self.app.get('/marshal/?type=2').data)
+        )
 
         # 测试对多个实例的转换
         trans_data = []
         i = 1
-        for student in sample_data['students']:
-            trans_data.append(self.trans_student_data(student, i))
+        for data in sample_data['normal_entities']:
+            trans_data.append(self.trans_entity_data(data, i))
             i += 1
+        self.assertItemsEqual(trans_data, json.loads(self.app.get('/marshal/?type=3').data))
 
-        self.assertItemsEqual(trans_data, json.loads(self.app.get('/marshal/?type=2').data))
+    def trans_entity_data(self, entity, entity_id):
+        trans_entity = {unicode('id'): entity_id}
+        for key, value in entity.iteritems():
+            if key in ['cts', 'cts_n']:
+                value = time.mktime(value.timetuple())
+            elif key in ['cfl', 'cfl_n']:
+                value = float(value)
+            elif key in ['cstr', 'cstr_n']:
+                value = unicode(value)
+                if key == 'cstr_n':
+                    value = value.upper()
+            elif key == 'cint_n':
+                value = value + 1 if value != 20 else 19
+            trans_entity[unicode(key)] = value
 
+        for field in ['cint_n', 'cstr_n', 'cfl_n', 'cbl_n', 'cts_n']:
+            if field not in trans_entity:
+                trans_entity[unicode(field)] = None
+
+        return trans_entity

@@ -11,8 +11,10 @@ class MarshalRoute(restful.Resource):
     def get(self):
         response_type = int(request.args.get('type'))
         if response_type == 1:
-            return Entity.query.get(3)
+            return Entity.query.get(1)
         elif response_type == 2:
+            return Entity.query.get(2)
+        elif response_type == 3:
             return Entity.query
 
 api.add_resource(MarshalRoute, '/marshal/')
