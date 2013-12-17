@@ -7,6 +7,7 @@ import model_route
 from flask import json
 from flask_restful_extend.extend_model import ModelInvalid
 import time
+from flask import url_for
 
 
 conn = MySQLdb.connect(host="localhost", user="root", passwd="609888", charset='utf8')
@@ -18,7 +19,7 @@ class SQLAlchemyTestCase(unittest.TestCase):
         self.app = app.test_client()
 
         cur = conn.cursor()
-        cur.execute('DROP DATABASE flask_restful_extend_test')
+        cur.execute('DROP DATABASE IF EXISTS flask_restful_extend_test')
         cur = conn.cursor()
         cur.execute('CREATE DATABASE flask_restful_extend_test')
 
@@ -69,6 +70,8 @@ class SQLAlchemyTestCase(unittest.TestCase):
             i += 1
         self.assertItemsEqual(trans_data, json.loads(self.app.get('/marshal/?type=3').data))
 
+        # todo: 测试 join query
+
     def trans_entity_data(self, entity, entity_id):
         trans_entity = {unicode('id'): entity_id}
         for key, value in entity.iteritems():
@@ -89,3 +92,18 @@ class SQLAlchemyTestCase(unittest.TestCase):
                 trans_entity[unicode(field)] = None
 
         return trans_entity
+
+    def test_converter(self):
+        # to_python
+        rv = self.app.get('/conv/1')
+        self.assertEqual(
+            self.trans_entity_data(sample_data['normal_entities'][0], 1),
+            json.loads(rv.data)
+        )
+
+        # to_url
+        with app.test_request_context():
+            self.assertEqual(
+                url_for('converterroute', entity=Entity.query.get(2)),
+                '/conv/2'
+            )
