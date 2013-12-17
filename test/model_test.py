@@ -3,6 +3,7 @@ import unittest
 from project import app
 import MySQLdb
 from model_model import *
+from model_data import *
 import model_route
 from flask import json
 from flask_restful_extend.extend_model import ModelInvalid
@@ -70,7 +71,10 @@ class SQLAlchemyTestCase(unittest.TestCase):
             i += 1
         self.assertItemsEqual(trans_data, json.loads(self.app.get('/marshal/?type=3').data))
 
-        # todo: 测试 join query
+        # 测试 excludes 功能
+        data = self.trans_entity_data(sample_data['normal_entities'][0], 1)
+        del data['cstr_n'], data['cbl']
+        self.assertEqual(data, json.loads(self.app.post('/marshal/').data))
 
     def trans_entity_data(self, entity, entity_id):
         trans_entity = {unicode('id'): entity_id}
