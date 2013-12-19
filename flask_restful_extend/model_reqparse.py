@@ -94,9 +94,6 @@ class RequestParser(reqparse.RequestParser):
         super(RequestParser, self).__init__(*args, **kwargs)
 
     def add_argument(self, *args, **kwargs):
-        # 根据 request 的 content-type 判断应该从 json 还是 formdata/query_string 中提取用户输入
-        kwargs['location'] = kwargs.pop('location', 'values' if request.json is None else 'json')
-
         # 对常见的类型进行封装，使其拥有正确的行为
         arg_type = kwargs.pop('type', None)
         if arg_type is not None:
@@ -120,7 +117,7 @@ class RequestParser(reqparse.RequestParser):
             # 照理说 populate 模式下，若用户没提交此参数，应忽略它；而只在确实提交了 null 时，才把 instance 的对应字段设为 None
             #
             # 因此，现在在 req parser 中，添加了一个 for_populate 参数。
-            # 在 for_populate 为 True 的情况下，未出现的参数不会让它出现在解析出来的参数列表里。
+            # 在 for_populate 为 True 的情况下，未出现的参数压根不会让它出现在解析出来的参数列表里。
             # 而 null 值参数就会将参数值设为 None，使得其最终能够被写入数据库。
             arg_source = arg.source(req)
             if len(arg_source) == 0 and for_populate:
