@@ -1,17 +1,13 @@
 # -*- coding: utf-8 -*-
 import unittest
 from project import app
-import MySQLdb
 from model_model import *
 from model_data import *
 import model_route
-from flask import json
+from flask import json, url_for
 from flask_restful_extend.extend_model import ModelInvalid
+from flask_restful_extend.model_reqparse import _ExtendedArgument
 import time
-from flask import url_for
-
-
-conn = MySQLdb.connect(host="localhost", user="root", passwd="609888", charset='utf8')
 
 
 class SQLAlchemyTestCase(unittest.TestCase):
@@ -19,29 +15,12 @@ class SQLAlchemyTestCase(unittest.TestCase):
         app.config['TESTING'] = True
         self.app = app.test_client()
 
-        cur = conn.cursor()
-        cur.execute('DROP DATABASE IF EXISTS flask_restful_extend_test')
-        cur = conn.cursor()
-        cur.execute('CREATE DATABASE flask_restful_extend_test')
-
-        db.create_all()
-
-        for parent in sample_data['parents']:
-            p = Parent(**parent)
-            db.session.add(p)
-
-        for entity in sample_data['normal_entities']:
-            e = Entity(**entity)
-            db.session.add(e)
-
-        db.session.commit()
-
     def tearDown(self):
         pass
 
     def test_model_validate(self):
-        entities = [e for e in Entity.query]
-        self.assertEqual(len(entities), 4)
+        entities = list(Entity.query)
+        self.assertEqual(len(entities), len(sample_data['normal_entities']))
 
         for data in sample_data['invalid_entities']:
             with self.assertRaises(ModelInvalid) as cm:
@@ -111,3 +90,12 @@ class SQLAlchemyTestCase(unittest.TestCase):
                 url_for('converterroute', entity=Entity.query.get(2)),
                 '/conv/2'
             )
+
+    def test_reqparse_extendedArgument(self):
+        # todo: 测试 原版的 req parser 是否已经能正确、自动的从 requests.json 中取值，
+        # 而不用自己再在函数里设定一次 location=json 了？
+
+        with app.test_request_context(method='POST', data='{"foo1": "bar"}', content_type='application/json') as ctx:
+            req = ctx.request
+            arg = _ExtendedArgument('foo')
+            print arg.parse(req)

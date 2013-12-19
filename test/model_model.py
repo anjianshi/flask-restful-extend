@@ -7,6 +7,8 @@ from sqlalchemy.orm import relationship, validates
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask_restful_extend.extend_model import extend_model
 from project import app
+from model_data import sample_data
+import MySQLdb
 
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://{db_user}:{db_password}@localhost/{db}'.format(
@@ -69,3 +71,29 @@ class Entity(db.Model):
         ('cint_n', valid_cint_n, 2),    # 对于双数返回 true，对于单数返回 false。
                                         # 结合 trans_cint_n，则 cint_n 原始值必须为单数才能通过检查
     ]
+
+
+# 初始化数据
+
+conn = MySQLdb.connect(host="localhost", user="root", passwd="609888", charset='utf8')
+
+cur = conn.cursor()
+cur.execute('SHOW DATABASES')
+if 'flask_restful_extend_test' in [n[0] for n in cur.fetchall()]:
+    cur = conn.cursor()
+    cur.execute('DROP DATABASE flask_restful_extend_test')
+
+cur = conn.cursor()
+cur.execute('CREATE DATABASE flask_restful_extend_test')
+
+db.create_all()
+
+for parent in sample_data['parents']:
+    p = Parent(**parent)
+    db.session.add(p)
+
+for entity in sample_data['normal_entities']:
+    e = Entity(**entity)
+    db.session.add(e)
+
+db.session.commit()
