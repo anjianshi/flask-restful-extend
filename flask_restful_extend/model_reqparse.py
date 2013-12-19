@@ -19,17 +19,19 @@ _type_dict = {
 
 class _ExtendedArgument(reqparse.Argument):
     def parse(self, request, source=None):
+        # todo: 用更好的方法，代替把原函数照搬复制过来然后中间插入代码的行为。因为这样做，原函数的代码被更新时，这里的代码不会跟着更新。
+
         # === custom ===
         # 提升性能。 req parser 为了确认某个参数是否存在于请求中，需要调用此参数的 source() 方法。
         # 而此参数的 parse() 方法在解析参数值时还要再调用一次 source() 这就导致性能下降。
         # 因此，把执行机制改成：req parser 在调用参数的 parse() 方法时，把刚才已经提取好的 source 传给它， parse() 方法就不用在调用一次 source() 了。
-        
+
         if source is None:
             source = self.source(request)
         # === end ===
 
         results = []
-        
+
         for operator in self.operators:
             name = self.name + operator.replace("=", "", 1)
             if name in source:
@@ -46,7 +48,7 @@ class _ExtendedArgument(reqparse.Argument):
                     if value is None:
                         continue
                     # === end ===
-                    
+
                     if not self.case_sensitive:
                         value = value.lower()
                     if self.choices and value not in self.choices:
@@ -90,18 +92,18 @@ class RequestParser(reqparse.RequestParser):
     def __init__(self, *args, **kwargs):
         kwargs['argument_class'] = kwargs.pop('argument_class', _ExtendedArgument)
         super(RequestParser, self).__init__(*args, **kwargs)
-    
+
     def add_argument(self, *args, **kwargs):
         # 根据 request 的 content-type 判断应该从 json 还是 formdata/query_string 中提取用户输入
         kwargs['location'] = kwargs.pop('location', 'values' if request.json is None else 'json')
-        
+
         # 对常见的类型进行封装，使其拥有正确的行为
         arg_type = kwargs.pop('type', None)
         if arg_type is not None:
             kwargs['type'] = _type_dict.get(arg_type.__name__, arg_type) if hasattr(arg_type, '__name__') else arg_type
-        
+
         return super(RequestParser, self).add_argument(*args, **kwargs)
-    
+
     def parse_args(self, req=None, for_populate=False):
         """Parse all arguments from the provided request and return the results
         as a Namespace
@@ -115,8 +117,7 @@ class RequestParser(reqparse.RequestParser):
             # === custom ===
             # 在原来的流程下，一个参数无论是用户没有提交，还是提交了 null 值，在解析出来的参数列表里都会把它的值设为 None
             # 这在一般情况下没问题，但在 populate 模式（用于填充 model instance）下会出错。
-            # 照理说 populate 模式下，若用户没提交此参数，应忽略它；若提交的值是 null，则应把 instance 的对应字段设为 None
-            # 但现在两种情况下，参数的值都是 None，导致 populate 方法没办法进行正确的判断。
+            # 照理说 populate 模式下，若用户没提交此参数，应忽略它；而只在确实提交了 null 时，才把 instance 的对应字段设为 None
             #
             # 因此，现在在 req parser 中，添加了一个 for_populate 参数。
             # 在 for_populate 为 True 的情况下，未出现的参数不会让它出现在解析出来的参数列表里。
