@@ -89,9 +89,8 @@ class _ExtendedArgument(reqparse.Argument):
 
 
 class RequestParser(reqparse.RequestParser):
-    def __init__(self, *args, **kwargs):
-        kwargs['argument_class'] = kwargs.pop('argument_class', _ExtendedArgument)
-        super(RequestParser, self).__init__(*args, **kwargs)
+    def __init__(self, namespace_class=reqparse.Namespace):
+        super(RequestParser, self).__init__(_ExtendedArgument, namespace_class)
 
     def add_argument(self, *args, **kwargs):
         # 对常见的类型进行封装，使其拥有正确的行为
@@ -112,13 +111,19 @@ class RequestParser(reqparse.RequestParser):
 
         for arg in self.args:
             # === custom ===
-            # 在原来的流程下，一个参数无论是用户没有提交，还是提交了 null 值，在解析出来的参数列表里都会把它的值设为 None
-            # 这在一般情况下没问题，但在 populate 模式（用于填充 model instance）下会出错。
-            # 照理说 populate 模式下，若用户没提交此参数，应忽略它；而只在确实提交了 null 时，才把 instance 的对应字段设为 None
+            # 在原来的流程下，一个参数无论是用户没提交，还是提交了 null 值，在解析出来的参数列表里都会把它的值设为 None
+            # 这在一般情况下没问题，但在 populate 模式下（用于填充 model instance）会出错。
+            # 在 populate 模式下，若用户没提交此参数，应忽略它。
+            # 只有用户确实提交了 null 时，才把 instance 的对应字段设为 None
             #
             # 因此，现在在 req parser 中，添加了一个 for_populate 参数。
             # 在 for_populate 为 True 的情况下，未出现的参数压根不会让它出现在解析出来的参数列表里。
             # 而 null 值参数就会将参数值设为 None，使得其最终能够被写入数据库。
+            #
+            # P.S.
+            # 若通过 QueryString 或 FormData 方式提交参数值，则解析结果只有可能是字符串值
+            # （包括 url?a= ，这里 a 的值是空字符串）
+            # 只有通过 JSON 提交，才有可能指定 null 值
             arg_source = arg.source(req)
             if len(arg_source) == 0 and for_populate:
                 continue
