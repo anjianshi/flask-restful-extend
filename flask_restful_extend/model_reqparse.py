@@ -58,15 +58,15 @@ def populate_model(model_or_inst, excludes=None, only=None):
     调用 make_request_parser() 构建一个 RequestParser 并用它提取用户输入，填充到指定的 model_inst 中。
     (若传入的是 model 类，会创建一个它的实例，并将其作为 model_inst)
     """
-    model_inst = model_or_inst if _is_inst(model_or_inst) else model_or_inst()
+    inst = model_or_inst if _is_inst(model_or_inst) else model_or_inst()
 
     parser = make_request_parser(model_or_inst, excludes, only, for_populate=True)
     req_args = parser.parse_args()
 
     for key, value in req_args.iteritems():
-        setattr(model_inst, key, value)
+        setattr(inst, key, value)
 
-    return model_inst
+    return inst
 
 
 def _is_inst(model_or_inst):
