@@ -6,7 +6,6 @@ from model_data import *
 import model_route
 from flask import json, url_for
 from flask_restful_extend.extend_model import ModelInvalid
-from flask_restful_extend.model_reqparse import _ExtendedArgument
 import time
 
 
@@ -90,12 +89,3 @@ class SQLAlchemyTestCase(unittest.TestCase):
                 url_for('converterroute', entity=Entity.query.get(2)),
                 '/conv/2'
             )
-
-    def test_reqparse_extendedArgument(self):
-        # todo: 测试 原版的 req parser 是否已经能正确、自动的从 requests.json 中取值，
-        # 而不用自己再在函数里设定一次 location=json 了？
-
-        with app.test_request_context(method='POST', data='{"foo1": "bar"}', content_type='application/json') as ctx:
-            req = ctx.request
-            arg = _ExtendedArgument('foo')
-            print arg.parse(req)

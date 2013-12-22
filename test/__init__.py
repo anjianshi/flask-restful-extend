@@ -10,6 +10,7 @@ from project import *
 
 from json_test import JSONTestCase
 from model_test import SQLAlchemyTestCase
+from reqparse_test import ReqParseTestCase
 from api_test import APITestCase
 
 """
