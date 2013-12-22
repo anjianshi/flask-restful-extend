@@ -48,6 +48,9 @@ class ReqParseTestCase(unittest.TestCase):
                 data='{"foo": 100, "bar": "abc", "li": [300, 100, 200]}',
                 content_type="application/json"):
             # 确认能否成功取到参数值
+            # 因为内部实现中涉及到了 Argument 的 action 属性，同时也要确认一下有没有造成不良影响
+
+            # 1. 默认为 action=store，总是只返回此参数的第一个值
             self.assertEqual(
                 PopulatorArgument('foo', type=int).parse(request),
                 100)
@@ -58,6 +61,26 @@ class ReqParseTestCase(unittest.TestCase):
                 PopulatorArgument('li', type=list).parse(request),
                 [300, 100, 200])
 
+            # 2. action=append 的情况下，总是返回此参数的值列表
+            self.assertEqual(
+                PopulatorArgument('bar', action='append').parse(request),
+                [u'abc'])
+            self.assertEqual(
+                PopulatorArgument('li', type=list, action='append').parse(request),
+                [[300, 100, 200]])
+
+            # 3. 在 action 是其他值得情况下，若值数量为1，返回此值；否则返回值列表
+            # 因为对于 JSON 类型的请求来说，一个参数永远只能有一个值，因此这种情况下返回的一定也永远都是值本身，而不是值列表
+            self.assertEqual(
+                PopulatorArgument('foo', type=int, action='something').parse(request),
+                100)
+            self.assertEqual(
+                PopulatorArgument('bar', action='something').parse(request),
+                u'abc')
+            self.assertEqual(
+                PopulatorArgument('li', type=list, action='something').parse(request),
+                [300, 100, 200])
+
             # 确认在未给出参数值的情况下，是否会按照预期抛出异常
             with self.assertRaises(ArgumentNoValue):
                 PopulatorArgument('no_val_arg').parse(request)
@@ -66,7 +89,6 @@ class ReqParseTestCase(unittest.TestCase):
         with app.test_request_context('/?foo=100&bar=abc&li=300&li=100&li=200', method='GET'):
             # 确认能否成功取到参数值
             # 因为内部实现中涉及到了 Argument 的 action 属性，同时也要确认一下有没有造成不良影响
-            # （这个参数在 JSON 情况下是无效的，只在 QueryString / FormData 情况下有效，因此也只在这里进行测试）
 
             # 1. 默认为 action=store，总是只返回此参数的第一个值
             self.assertEqual(
