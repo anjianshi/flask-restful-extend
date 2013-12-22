@@ -2,6 +2,16 @@
 __all__ = ['make_request_parser', 'po']
 from flask.ext.restful import reqparse
 from flask import request
+import reqparse_fixed_type as fixed_type
+
+_type_dict = {
+    # python_type_name: fixed_type
+    'datetime': fixed_type.fixed_datetime,
+    'str': fixed_type.fixed_str,
+    'int': fixed_type.fixed_int,
+    'float': fixed_type.fixed_float,
+    'bool': fixed_type.fixed_bool
+}
 
 
 def make_request_parser(model_or_inst, excludes=None, only=None, for_populate=False):
@@ -33,7 +43,10 @@ def make_request_parser(model_or_inst, excludes=None, only=None, for_populate=Fa
         elif (excludes and col.name in excludes) or col.primary_key:
                 continue
 
-        kwargs = {"type": col.type.python_type}
+        col_type = col.type.python_type
+        kwargs = {
+            "type": _type_dict.get(col_type.__name__, col_type) if hasattr(col_type, '__name__') else col_type
+        }
         if not is_inst and not col.nullable:
             kwargs["required"] = True
         parser.add_argument(col.name, **kwargs)
