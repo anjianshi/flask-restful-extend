@@ -1,141 +1,10 @@
 # -*- coding: utf-8 -*-
+__all__ = ['make_request_parser', 'po']
 from flask.ext.restful import reqparse
-from datetime import datetime
 from flask import request
-import six
 
 
-def _is_inst(model_or_inst):
-    return hasattr(model_or_inst, '_sa_instance_state')
-
-
-_type_dict = {
-    "datetime": lambda time_str: datetime.strptime(time_str, '%Y-%m-%d %H:%M:%S'),
-    "str": unicode,
-    "float": lambda value: None if isinstance(value, (str, unicode)) and len(value) == 0 else float(value),
-    "int": lambda value: None if isinstance(value, (str, unicode)) and len(value) == 0 else int(value)
-}
-
-
-class _ExtendedArgument(reqparse.Argument):
-    def parse(self, request, source=None):
-        # todo: 用更好的方法，代替把原函数照搬复制过来然后中间插入代码的行为。因为这样做，原函数的代码被更新时，这里的代码不会跟着更新。
-
-        # === custom ===
-        # 提升性能。 req parser 为了确认某个参数是否存在于请求中，需要调用此参数的 source() 方法。
-        # 而此参数的 parse() 方法在解析参数值时还要再调用一次 source() 这就导致性能下降。
-        # 因此，把执行机制改成：req parser 在调用参数的 parse() 方法时，把刚才已经提取好的 source 传给它， parse() 方法就不用在调用一次 source() 了。
-
-        if source is None:
-            source = self.source(request)
-        # === end ===
-
-        results = []
-
-        for operator in self.operators:
-            name = self.name + operator.replace("=", "", 1)
-            if name in source:
-                # Account for MultiDict and regular dict
-                if hasattr(source, "getlist"):
-                    values = source.getlist(name)
-                else:
-                    values = [source.get(name)]
-
-                for value in values:
-                    # === custom ===
-                    # 若传入的是 null (None)，不对其进行格式化，以避免报错
-                    # 最终，其值会被设为 self.default (默认是 None)
-                    if value is None:
-                        continue
-                    # === end ===
-
-                    if not self.case_sensitive:
-                        value = value.lower()
-                    if self.choices and value not in self.choices:
-                        self.handle_validation_error(ValueError(
-                            u"{0} is not a valid choice".format(value)))
-                    try:
-                        value = self.convert(value, operator)
-                    except Exception as error:
-                        if self.ignore:
-                            continue
-
-                        self.handle_validation_error(error)
-
-                    results.append(value)
-
-        if not results and self.required:
-            if isinstance(self.location, six.string_types):
-                error_msg = u"{0} is required in {1}".format(
-                    self.name,
-                    self.location
-                )
-            else:
-                error_msg = u"{0} is required in {1}".format(
-                    self.name,
-                    ' or '.join(self.location)
-                )
-            self.handle_validation_error(ValueError(error_msg))
-
-        if not results:
-            return self.default
-
-        if self.action == 'append':
-            return results
-
-        if self.action == 'store' or len(results) == 1:
-            return results[0]
-        return results
-
-
-class RequestParser(reqparse.RequestParser):
-    def __init__(self, namespace_class=reqparse.Namespace):
-        super(RequestParser, self).__init__(_ExtendedArgument, namespace_class)
-
-    def add_argument(self, *args, **kwargs):
-        # 对常见的类型进行封装，使其拥有正确的行为
-        arg_type = kwargs.pop('type', None)
-        if arg_type is not None:
-            kwargs['type'] = _type_dict.get(arg_type.__name__, arg_type) if hasattr(arg_type, '__name__') else arg_type
-
-        return super(RequestParser, self).add_argument(*args, **kwargs)
-
-    def parse_args(self, req=None, for_populate=False):
-        """Parse all arguments from the provided request and return the results
-        as a Namespace
-        """
-        if req is None:
-            req = request
-
-        namespace = self.namespace_class()
-
-        for arg in self.args:
-            # === custom ===
-            # 在原来的流程下，一个参数无论是用户没提交，还是提交了 null 值，在解析出来的参数列表里都会把它的值设为 None
-            # 这在一般情况下没问题，但在 populate 模式下（用于填充 model instance）会出错。
-            # 在 populate 模式下，若用户没提交此参数，应忽略它。
-            # 只有用户确实提交了 null 时，才把 instance 的对应字段设为 None
-            #
-            # 因此，现在在 req parser 中，添加了一个 for_populate 参数。
-            # 在 for_populate 为 True 的情况下，未出现的参数压根不会让它出现在解析出来的参数列表里。
-            # 而 null 值参数就会将参数值设为 None，使得其最终能够被写入数据库。
-            #
-            # P.S.
-            # 若通过 QueryString 或 FormData 方式提交参数值，则解析结果只有可能是字符串值
-            # （包括 url?a= ，这里 a 的值是空字符串）
-            # 只有通过 JSON 提交，才有可能指定 null 值
-            arg_source = arg.source(req)
-            if len(arg_source) == 0 and for_populate:
-                continue
-            else:
-                value = arg.parse(req, arg_source)
-                namespace[arg.dest or arg.name] = value
-            # === end ===
-
-        return namespace
-
-
-def make_request_parser(model_or_inst, excludes=None, only=None):
+def make_request_parser(model_or_inst, excludes=None, only=None, for_populate=False):
     """
     传入一个 model 类(model)或者 model 实例(model_inst)
     根据对应的 model 的定义，构建一个从 request.json 中提取用户输入的 RequestParser。
@@ -156,7 +25,7 @@ def make_request_parser(model_or_inst, excludes=None, only=None):
     elif isinstance(only, str) or isinstance(only, unicode):
         excludes = [excludes]
 
-    parser = RequestParser()
+    parser = RequestPopulator() if for_populate else reqparse.RequestParser()
     for col in model_or_inst.__table__.columns:
         if only:
             if col.name not in only:
@@ -178,10 +47,78 @@ def populate_model(model_or_inst, excludes=None, only=None):
     """
     model_inst = model_or_inst if _is_inst(model_or_inst) else model_or_inst()
 
-    parser = make_request_parser(model_or_inst, excludes, only)
-    req_args = parser.parse_args(for_populate=True)
+    parser = make_request_parser(model_or_inst, excludes, only, for_populate=True)
+    req_args = parser.parse_args()
 
     for key, value in req_args.iteritems():
         setattr(model_inst, key, value)
 
     return model_inst
+
+
+def _is_inst(model_or_inst):
+    return hasattr(model_or_inst, '_sa_instance_state')
+
+
+class RequestPopulator(reqparse.RequestParser):
+    def __init__(self, *args, **kwargs):
+        kwargs['argument_class'] = PopulatorArgument
+        super(RequestPopulator, self).__init__(*args, **kwargs)
+
+    def parse_args(self, req=None):
+        if req is None:
+            req = request
+
+        namespace = self.namespace_class()
+
+        for arg in self.args:
+            # 在原来的流程下，一个参数无论是用户没提交，还是提交了 null 值，在解析出来的参数列表里都会把它的值设为 None
+            # 这在一般情况下没问题，但在 populate 模式下（用于填充 model instance）会出错。
+            # 在 populate 模式下，若用户没提交此参数，应忽略它。
+            # 只有用户确实提交了 null 时，才把 instance 的对应字段设为 None
+            #
+            # 因此，现在在 req parser 中，添加了一个 for_populate 参数。
+            # 在 for_populate 为 True 的情况下，未出现的参数压根不会让它出现在解析出来的参数列表里。
+            # 而 null 值参数就会将参数值设为 None，使得其最终能够被写入数据库。
+            #
+            # P.S.
+            # 若通过 QueryString 或 FormData 方式提交参数值，则解析结果只有可能是字符串值
+            # （包括 url?a= ，这里 a 的值是空字符串）
+            # 只有通过 JSON 提交，才有可能指定 null 值
+            try:
+                value = arg.parse(req)
+                namespace[arg.dest or arg.name] = value
+            except ArgumentNoValue:
+                pass
+
+        return namespace
+
+
+class PopulatorArgument(reqparse.Argument):
+    """为 populate 操作定制的 Argument 类。
+    当参数未赋值时，会抛出异常而不是应用默认值。因此，default 参数在这里无效"""
+    def __init__(self, *args, **kwargs):
+        # 把 action 强制设定为 append，以便解析参数值的时候判断此参数有没有被赋值
+        # 记录原来的 action 是为了在最后仍能以用户期望的格式返回参数值
+        self.real_action = kwargs.get('action', 'store')
+        kwargs['action'] = 'append'
+
+        super(PopulatorArgument, self).__init__(*args, **kwargs)
+
+    def parse(self, req):
+        results = super(PopulatorArgument, self).parse(req)
+
+        # 因为把 action 强制设定为了 append，因此在提交了参数值的情况下，results 一定是一个数组，
+        # 不会和 self.default 是同一个值
+        # （即使 self.default 也是数组，也不会和 results 是同一个数组）
+        # 因此就可以通过这一点来判断当前请求中，到底有没有提交此参数的值
+        if results is self.default:
+            raise ArgumentNoValue()
+        elif self.real_action == 'store' or (self.real_action != 'append' and len(results) == 1):
+            return results[0]
+        else:
+            return results
+
+
+class ArgumentNoValue(Exception):
+    pass
