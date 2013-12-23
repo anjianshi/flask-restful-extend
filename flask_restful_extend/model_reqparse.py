@@ -14,6 +14,22 @@ _type_dict = {
 }
 
 
+def fix_argument_convert():
+    """修改 reqparse.Argument.convert 的默认行为
+    不再为 string_types 特别处理 None 值
+    同时允许把函数作为 Argument 的 type 参数的值
+    """
+    def _convert(self, value, op):
+        try:
+            return self.type(value, self.name, op)
+        except TypeError:
+            try:
+                return self.type(value, self.name)
+            except TypeError:
+                return self.type(value)
+    reqparse.Argument.convert = _convert
+
+
 def make_request_parser(model_or_inst, excludes=None, only=None, for_populate=False):
     """
     传入一个 model 类(model)或者 model 实例(model_inst)
@@ -120,7 +136,8 @@ class PopulatorArgument(reqparse.Argument):
     因此，只要参数的构造器本身不支持处理给定的值，就好报 400 错误。（例如：int 构造器既不支持空字符串，也不支持 None，那么碰到它们就会报错）
     这样做可以避免歧义，例如 int 本身不支持空字符串，如果特意为了它把空字符串转成 None 或者 0，会使不了解内情的人误解，或者与他们预期的行为不符。
     当然，可以通过自定义一个构造器来进行额外的处理，因为它明摆着是做了额外处理的，所以不会有误解的问题。
-    P.S. flask-restful 在碰到 text 参数且值为 None 时，会返回 None，这个行为虽然不符合上面的规则，但是貌似没有特意修正的必要，所以就当一个特例记起来好了
+    P.S. flask-restful 在碰到 text 参数且值为 None 时，会返回 None，
+         这个行为不符合上面的规则，可调用 fix_argument_convert() 修复它
     """
     def __init__(self, *args, **kwargs):
         # 把 action 强制设定为 append，以便解析参数值的时候判断此参数有没有被赋值
