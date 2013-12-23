@@ -19,7 +19,7 @@ exception_data_list = [
     (CustomException, 'my customexception message'),
     # 既带 data 属性，又带 description 属性的异常（实际是个 HTTPException 添加了一个 data 属性）
     # 如果在 reqparse.Argument 调用用户指定的构造器对参数值进行转换的途中，抛出了 TypeError 以外的异常，
-    # 且 arg 的 ignore 属性为 True，它就会被转换成这种特殊的异常。
+    # 且 arg 的 ignore 属性为 False，它就会被转换成这种特殊的异常。
     # 具体步骤是：
     #   Argument.parse() 捕获原始异常，将其传给 handle_validation_error()
     #   然后这个函数将它转换成字符串形式的 error_msg，再交给 flask_restful.abort()
