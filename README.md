@@ -24,6 +24,15 @@
 **make\_request\_parser**, **populate\_model** (model\_reqparse.py)  
 基于 model class / instance 创建 RequestParser 实例  
 
+**fix\_argument\_convert** (model\_reqparse.py)  
+修改 reqparse.Argument.convert 的一些默认行为，使其更合理、统一 
+
+**fixed_type** (reqparse\_fixed\_type.py)  
+经过定制的一系列 arg value 类型转换函数
+代替 int、str、datetime... 作为 Argument type 参数的值，能够提供一些附加功能  
+具体请看相关代码
+（需调用 fix\_argument\_convert() 后才能正常使用）
+
 **extend\_model** (extend\_model.py)  
 扩展 SQLAlchemy 的 model 类，简化 model 验证规则的创建过程  
 此功能与 Flask-RESTful 无关。  

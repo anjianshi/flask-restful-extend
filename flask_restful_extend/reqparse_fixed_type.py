@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+"""
+需调用 fix_argument_convert() 后才能使用
+不然无法处理 None 值，一碰到 arg_value is None 的情况 Argument.convert() 就会抛出异常
+"""
 from datetime import datetime
 
 
