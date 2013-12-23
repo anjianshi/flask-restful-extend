@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 import unittest
 from project import app
-from flask_restful_extend.model_reqparse import make_request_parser, populate_model, RequestPopulator, PopulatorArgument, ArgumentNoValue
+from flask_restful_extend.model_reqparse import fix_argument_convert, make_request_parser, populate_model, RequestPopulator, PopulatorArgument, ArgumentNoValue
 from flask_restful_extend.reqparse_fixed_type import *
+from flask.ext.restful.reqparse import Argument
 from model_model import *
 from pprint import pprint
 from flask import request, json
@@ -12,6 +13,22 @@ class ReqParseTestCase(unittest.TestCase):
     def setUp(self):
         app.config['TESTING'] = True
         self.app = app.test_client()
+
+    def test_fix_argument_convert(self):
+        fix_argument_convert()
+
+        with app.test_request_context(
+                method='POST',
+                data='{"foo": null}',
+                content_type="application/json"):
+            # 测试对 None 值的处理
+            self.assertEqual(Argument('foo').parse(request), 'None')
+
+            # 测试 type 参数是函数，且 arg value is None 时会不会报错
+            self.assertEqual(
+                Argument('foo', type=lambda v: 'haha').parse(request),
+                'haha'
+            )
 
     def test_fixed_type(self):
         # 测试类型转换
