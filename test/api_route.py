@@ -7,8 +7,8 @@ from api_exceptions import exception_data_list
 
 class APIRoute(restful.Resource):
     def get(self):
-        result_type = int(request.args.get('type'))
-        exception_cls, message = exception_data_list[result_type - 1]
+        exec_index = int(request.args.get('index'))
+        exception_cls, message = exception_data_list[exec_index]
         raise exception_cls(message)
 
 api.add_resource(APIRoute, '/api/')

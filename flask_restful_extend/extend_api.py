@@ -15,6 +15,14 @@ class ErrorHandledApi(restful.Api):
             name: str(e) 时输出的字符串
             description: error message
 
+        flask_restful.abort (包括 flask_restful.reqparse.Argument.handle_validation_error) 抛出的格式为：
+        (详情见 test/api_exceptions.py)
+            code: http code
+            description: predefined error message for this http code
+            data: ｛
+            　　　　message: error message
+            ｝
+
         flask_restful 的 handle_error 函数支持的格式为：
             code: http code
             data: ｛
@@ -24,10 +32,11 @@ class ErrorHandledApi(restful.Api):
         此函数能把 werkzeug 的 HTTPException 和带 code 属性的标准 python exception
         改写成 flask_restful 能识别的形式
         """
-        if hasattr(e, 'description'):
-            e.data = dict(message=e.description)
-        elif hasattr(e, 'code') and hasattr(e, 'message') and not hasattr(e, 'data'):
-            e.data = dict(message=e.message)
+        if not hasattr(e, 'data'):
+            if hasattr(e, 'description'):
+                e.data = dict(message=e.description)
+            elif hasattr(e, 'code') and hasattr(e, 'message'):
+                e.data = dict(message=e.message)
         return super(ErrorHandledApi, self).handle_error(e)
 
     def unauthorized(self, response):
