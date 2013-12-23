@@ -9,14 +9,15 @@ from pprint import pprint
 from flask import request, json
 
 
+fix_argument_convert()
+
+
 class ReqParseTestCase(unittest.TestCase):
     def setUp(self):
         app.config['TESTING'] = True
         self.app = app.test_client()
 
     def test_fix_argument_convert(self):
-        fix_argument_convert()
-
         with app.test_request_context(
                 method='POST',
                 data='{"foo": null}',
@@ -57,6 +58,16 @@ class ReqParseTestCase(unittest.TestCase):
         # 测试 None 值处理
         for fixed_type in [fixed_datetime, fixed_str, fixed_int, fixed_float, fixed_bool]:
             self.assertIsNone(fixed_type(None))
+
+        # 测试实际调用时能否正确运行
+        with app.test_request_context(
+                method='POST',
+                data='{"n1": 100, "n2": "100", "n3": "", "n4": null}',
+                content_type="application/json"):
+            self.assertEqual(Argument('n1', type=fixed_int).parse(request), 100)
+            self.assertEqual(Argument('n2', type=fixed_int).parse(request), 100)
+            self.assertEqual(Argument('n3', type=fixed_int).parse(request), None)
+            self.assertEqual(Argument('n4', type=fixed_int).parse(request), None)
 
     def test_populator_argument(self):
         # 测试 JSON 下的情况
