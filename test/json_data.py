@@ -37,6 +37,8 @@ encode_map = [
 
     # 复合类型
     ([1, 'a', Decimal(10.5)], '[1, "a", 10.5]'),
+    # 不能把长度在 3 以下的 tuple 当返回值，不然会被 flask-restful 解释成: (return_value, http_status_code, other_sth)
+    (('b', 5, Decimal(2), 1), '["b", 5, 2.0, 1]'),
     (dict(c=1, b=Decimal(10.5)), '{"c": 1, "b": 10.5}'),
 
     # 需调用 flask-restful-extend 内置的 encoder 的类型
