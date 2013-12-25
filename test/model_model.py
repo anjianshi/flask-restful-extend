@@ -50,10 +50,10 @@ class Entity(db.Model):
     cfl = Column(Float, nullable=False)
     cfl_n = Column(Float)
 
-    cbl = Column(Boolean, nullable=False)
+    cbl = Column(Boolean, nullable=False, default=True)
     cbl_n = Column(Boolean)
 
-    cts = Column(TIMESTAMP, nullable=False)
+    cts = Column(TIMESTAMP, nullable=False, server_default=text('CURRENT_TIMESTAMP'))
     cts_n = Column(TIMESTAMP)
 
     validate_rules = [

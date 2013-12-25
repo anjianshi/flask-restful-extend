@@ -68,7 +68,8 @@ def make_request_parser(model_or_inst, excludes=None, only=None, for_populate=Fa
         kwargs = {
             "type": _type_dict.get(col_type.__name__, col_type) if hasattr(col_type, '__name__') else col_type
         }
-        if not is_inst and not col.nullable:
+        # 创建新数据库实例时，若一个字段既没有默认值，又不允许 NULL，则把它对应 arg 设为 required
+        if not is_inst and col.default is None and col.server_default is None and not col.nullable:
             kwargs["required"] = True
         parser.add_argument(col.name, **kwargs)
     return parser

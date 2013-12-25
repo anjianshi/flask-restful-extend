@@ -191,11 +191,11 @@ class ReqParseTestCase(unittest.TestCase):
         for col_index, expect_type in expect_types:
             self.assertEqual(common_args[col_index].type, expect_type)
 
-        # 若给出的是 model (而不是 instance) ，检查 required 参数是否被正确设置
-        if is_model:
-            required_arg_index = [0, 2, 4, 6, 8]
-            for arg, i in zip(common_args, range(len(common_args))):
-                self.assertEqual(arg.required, i in required_arg_index)
+        # 若给出的是 model，则没有默认值且不允许 NULL 值的字段所对应的 arg 应设为 required
+        # 若给出的是 instance，则所有字段都不是 required
+        required_arg_index = [0, 2, 4]
+        for arg, i in zip(common_args, range(len(common_args))):
+            self.assertEqual(arg.required, is_model and i in required_arg_index)
 
         # 测试 excludes 和 only 参数
         def verify_args(args, remain):
