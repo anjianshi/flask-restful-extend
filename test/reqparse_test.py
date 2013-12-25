@@ -193,7 +193,7 @@ class ReqParseTestCase(unittest.TestCase):
 
         # 若给出的是 model，则没有默认值且不允许 NULL 值的字段所对应的 arg 应设为 required
         # 若给出的是 instance，则所有字段都不是 required
-        required_arg_index = [0, 2, 4]
+        required_arg_index = [0, 2, 8]
         for arg, i in zip(common_args, range(len(common_args))):
             self.assertEqual(arg.required, is_model and i in required_arg_index)
 

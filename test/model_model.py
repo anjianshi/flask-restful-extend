@@ -47,13 +47,13 @@ class Entity(db.Model):
     cstr = Column(String(5), nullable=False)
     cstr_n = Column(String(10))
 
-    cfl = Column(Float, nullable=False)
+    cfl = Column(Float, nullable=False, default=1.5)
     cfl_n = Column(Float)
 
-    cbl = Column(Boolean, nullable=False, default=True)
+    cbl = Column(Boolean, nullable=False, server_default=text('true'))
     cbl_n = Column(Boolean)
 
-    cts = Column(TIMESTAMP, nullable=False, server_default=text('CURRENT_TIMESTAMP'))
+    cts = Column(TIMESTAMP, nullable=False)
     cts_n = Column(TIMESTAMP)
 
     validate_rules = [
