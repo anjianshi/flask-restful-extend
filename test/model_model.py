@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-__all__ = ['db', 'Parent', 'Entity']
+__all__ = ['db', 'Parent', 'Entity', 'default_value']
 
 from sqlalchemy import Column, Integer, String, Float, Boolean, TIMESTAMP, desc, text, or_, ForeignKey
 from sqlalchemy.orm import relationship, validates
@@ -36,6 +36,9 @@ def valid_cint_n(value, arg1):
     return value % arg1 == 0
 
 
+default_value = dict(cfl=1.5, cbl=True)
+
+
 class Entity(db.Model):
     """
     c{column_type}[_n (nullable)]
@@ -47,10 +50,10 @@ class Entity(db.Model):
     cstr = Column(String(5), nullable=False)
     cstr_n = Column(String(10))
 
-    cfl = Column(Float, nullable=False, default=1.5)
+    cfl = Column(Float, nullable=False, default=default_value['cfl'])
     cfl_n = Column(Float)
 
-    cbl = Column(Boolean, nullable=False, server_default=text('true'))
+    cbl = Column(Boolean, nullable=False, server_default=text(str(default_value['cbl'])))
     cbl_n = Column(Boolean)
 
     cts = Column(TIMESTAMP, nullable=False)

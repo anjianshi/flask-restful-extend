@@ -19,11 +19,11 @@ sample_data = {
         # 所有数值都填上
         dict(parent_id=1, cint_n=11, cstr=u'一二三四', cstr_n='abcdefg', cfl=1.23, cfl_n=2.35,
              cbl=False, cbl_n=True, cts=_now, cts_n=_now),
-        # 只填上必填数值
-        dict(parent_id=2, cstr='xyz', cfl=13, cbl=True, cts=_now),
+        # 只填上必填（nullable=False且没有默认值的）数值
+        dict(parent_id=2, cstr='xyz', cts=_now),
         # 填上一部分选填数值
-        dict(parent_id=2, cint_n=15, cstr=u'一', cfl=1.23, cfl_n=2.35, cbl=False, cts=_now),
-        dict(parent_id=1, cstr=u'一', cstr_n=u'xxc', cfl=1.23, cbl=False, cts=_now),
+        dict(parent_id=2, cint_n=15, cstr=u'一', cfl=1.23, cfl_n=2.35, cts=_now),
+        dict(parent_id=1, cstr=u'一', cstr_n=u'xxc', cbl=False, cts=_now),
     ],
 
     # 非法数据

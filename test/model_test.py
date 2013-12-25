@@ -54,9 +54,9 @@ class SQLAlchemyTestCase(unittest.TestCase):
         del data['cstr_n'], data['cbl']
         self.assertEqual(data, json.loads(self.app.post('/marshal/').data))
 
-    def trans_entity_data(self, entity, entity_id):
-        trans_entity = {unicode('id'): entity_id}
-        for key, value in entity.iteritems():
+    def trans_entity_data(self, data, entity_id):
+        trans_data = {u'id': entity_id}
+        for key, value in data.iteritems():
             if key in ['cts', 'cts_n']:
                 value = time.mktime(value.timetuple())
             elif key in ['cfl', 'cfl_n']:
@@ -67,13 +67,17 @@ class SQLAlchemyTestCase(unittest.TestCase):
                     value = value.upper()
             elif key == 'cint_n':
                 value = value + 1 if value != 20 else 19
-            trans_entity[unicode(key)] = value
+            trans_data[unicode(key)] = value
+
+        for field in ['cfl', 'cbl']:
+            if field not in trans_data:
+                trans_data[unicode(field)] = default_value[field]
 
         for field in ['cint_n', 'cstr_n', 'cfl_n', 'cbl_n', 'cts_n']:
-            if field not in trans_entity:
-                trans_entity[unicode(field)] = None
+            if field not in trans_data:
+                trans_data[unicode(field)] = None
 
-        return trans_entity
+        return trans_data
 
     def test_converter(self):
         # to_python
