@@ -93,3 +93,18 @@ def marshal_with_model(model, excludes=None, only=None):
             return result if not _fields.is_indexable_but_not_string(result) else [v for v in result]
         return wrapper
     return decorated
+
+
+def quick_marshal(*args, **kwargs):
+    """
+    某些 API 函数可能需要在不同的情况返回不同格式的值
+    但通过 marshal_with_model 实现这样的行为不方便，必须在 API 函数内再创建几个临时函数
+    此时可以用这个函数简化这个过程
+
+    使用方法：
+    quick_marshal(args_to_marshal_with_model)(db_instance_or_query)
+    """
+    @marshal_with_model(*args, **kwargs)
+    def fn(value):
+        return value
+    return fn

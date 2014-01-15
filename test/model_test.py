@@ -6,6 +6,7 @@ from model_data import *
 import model_route
 from flask import json, url_for
 from flask_restful_extend.extend_model import ModelInvalid
+from flask_restful_extend.marshal import quick_marshal
 import time
 
 
@@ -58,6 +59,11 @@ class SQLAlchemyTestCase(unittest.TestCase):
         data = self.trans_entity_data(sample_data['normal_entities'][0], 1)
         self.assertEqual(dict(cstr_n=data['cstr_n'], cbl=data['cbl']), json.loads(self.app.delete('/marshal/').data))
 
+        # 测试 quick_marshal
+        self.assertEqual(
+            quick_marshal(Entity)(Entity.query.first()),
+            self.trans_entity_data(sample_data['normal_entities'][0], 1)
+        )
 
     def trans_entity_data(self, data, entity_id):
         trans_data = {u'id': entity_id}
