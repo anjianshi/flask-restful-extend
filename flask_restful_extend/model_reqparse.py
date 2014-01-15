@@ -48,7 +48,7 @@ def make_request_parser(model_or_inst, excludes=None, only=None, for_populate=Fa
     (若传入的是 model_inst，则不会进行此项检查。因为这种情况下，应该允许用户忽略对某个字段的赋值)
     """
     is_inst = _is_inst(model_or_inst)
-    
+
     if isinstance(excludes, str) or isinstance(excludes, unicode):
         excludes = [excludes]
     if excludes and only:
