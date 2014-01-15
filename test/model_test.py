@@ -49,10 +49,15 @@ class SQLAlchemyTestCase(unittest.TestCase):
             i += 1
         self.assertItemsEqual(trans_data, json.loads(self.app.get('/marshal/?type=3').data))
 
-        # 测试 excludes 功能
+        # 测试 excludes 功能，以及确认 excludes 和 only 同时出现时，只有 excludes 起作用
         data = self.trans_entity_data(sample_data['normal_entities'][0], 1)
         del data['cstr_n'], data['cbl']
         self.assertEqual(data, json.loads(self.app.post('/marshal/').data))
+
+        # 测试 only 功能
+        data = self.trans_entity_data(sample_data['normal_entities'][0], 1)
+        self.assertEqual(dict(cstr_n=data['cstr_n'], cbl=data['cbl']), json.loads(self.app.delete('/marshal/').data))
+
 
     def trans_entity_data(self, data, entity_id):
         trans_data = {u'id': entity_id}

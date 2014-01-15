@@ -46,13 +46,11 @@ _type_map = {
 }
 
 
-def marshal_with_model(model, excludes=[]):
+def marshal_with_model(model, excludes=None, only=None):
     """
-      todo: 支持 KeyedTuple
-
       让视图函数能够更方便地返回 ORM model 对象（仅针对 flask-sqlalchemy）
       1. 把 model 中的 column 转换成 flask-restful 能识别的 fields
-         可通过 `excludes` 参数指定要排除的 column
+         可通过 excludes 或 only 指定应被处理的 column。若同时传入 excludes 和 only，只有 excludes 会生效。
       2. 如果视图函数返回的是 query 对象（而不是单个的 model 对象），则把它转化成 list
 
       例子：
@@ -70,10 +68,22 @@ def marshal_with_model(model, excludes=[]):
       客户端接收到的返回值：
       [{"name": "student_a", "age": "16"}, {"name": "student_b", "age": 18}]
     """
+    if isinstance(excludes, str) or isinstance(excludes, unicode):
+        excludes = [excludes]
+    if excludes and only:
+        only = None
+    elif isinstance(only, str) or isinstance(only, unicode):
+        only = [only]
+
     field_definition = {}
     for col in model.__table__.columns:
-        if col.name not in excludes:
-            field_definition[col.name] = _type_map[col.type.python_type.__name__]
+        if only:
+            if col.name not in only:
+                continue
+        elif excludes and col.name in excludes:
+                continue
+
+        field_definition[col.name] = _type_map[col.type.python_type.__name__]
 
     def decorated(f):
         @wraps(f)

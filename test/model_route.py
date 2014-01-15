@@ -18,8 +18,12 @@ class MarshalRoute(restful.Resource):
         elif response_type == 3:
             return Entity.query
 
-    @marshal_with_model(Entity, excludes=['cstr_n', 'cbl'])
+    @marshal_with_model(Entity, excludes=['cstr_n', 'cbl'], only=['cbl'])
     def post(self):
+        return Entity.query.get(1)
+
+    @marshal_with_model(Entity, only=['cstr_n', 'cbl'])
+    def delete(self):
         return Entity.query.get(1)
 
 api.add_resource(MarshalRoute, '/marshal/')
