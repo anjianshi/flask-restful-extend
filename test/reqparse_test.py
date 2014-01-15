@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import unittest
 from project import app
-from flask_restful_extend.model_reqparse import fix_argument_convert, make_request_parser, populate_model, RequestPopulator, PopulatorArgument, ArgumentNoValue
+from flask_restful_extend.model_reqparse import fix_argument_convert, make_request_parser, populate_model, \
+    RequestPopulator, PopulatorArgument, ArgumentNoValue
 from flask_restful_extend.reqparse_fixed_type import *
 from flask.ext.restful.reqparse import Argument
 from model_model import *
@@ -209,6 +210,10 @@ class ReqParseTestCase(unittest.TestCase):
         verify_args(
             make_request_parser(model_or_inst, excludes=excludes).args,
             exclude_remain)
+        # 测试把字符串当做参数值时能否正确处理
+        verify_args(
+            make_request_parser(model_or_inst, excludes='cint_n').args,
+            ['parent_id', 'cstr', 'cstr_n', 'cfl', 'cfl_n', 'cbl', 'cbl_n', 'cts', 'cts_n'])
 
         # 2. only
         only = [
@@ -218,6 +223,10 @@ class ReqParseTestCase(unittest.TestCase):
         verify_args(
             make_request_parser(model_or_inst, only=only).args,
             only)
+        # 测试把字符串当做参数值时能否正确处理
+        verify_args(
+            make_request_parser(model_or_inst, only='cint_n').args,
+            ['cint_n'])
 
         # 3. 测试 excludes 和 only 都给出的情况下，是否只有 excludes 生效
         verify_args(
