@@ -17,7 +17,7 @@ def _wrap_field(field):
 
 
 class _DateTimeField(_fields.Raw):
-    """碰到 datetime 值时，将其转换为 timestamp 再返回"""
+    """碰到 datetime、date 值时，将其转换为 timestamp 再返回"""
     def format(self, value):
         try:
             return time.mktime(value.timetuple())
@@ -42,7 +42,8 @@ _type_map = {
     'int': _wrap_field(_fields.Integer),
     'float': _wrap_field(_FloatField),
     'bool': _wrap_field(_fields.Boolean),
-    'datetime': _wrap_field(_DateTimeField)
+    'datetime': _wrap_field(_DateTimeField),
+    'date': _wrap_field(_DateTimeField)
 }
 
 
@@ -103,19 +104,6 @@ def quick_marshal(*args, **kwargs):
 
     使用方法：
     quick_marshal(args_to_marshal_with_model)(db_instance_or_query)
-
-    ---
-
-    另外，有些 API 函数返回的不是规则的数据，可能需要预先把 model marshal 完成后，存放到自定义的数据结构中
-    此时也可以使用此函数
-
-    例如：
-    marshal = quick_marshal(Points)
-
-    data = {}
-    for student in students:
-      data[student.id] = marshal(student.get_points())
-    return data
     """
     @marshal_with_model(*args, **kwargs)
     def fn(value):

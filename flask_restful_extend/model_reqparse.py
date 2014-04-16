@@ -8,6 +8,7 @@ import reqparse_fixed_type as fixed_type
 _type_dict = {
     # python_type_name: fixed_type
     'datetime': fixed_type.fixed_datetime,
+    'date': fixed_type.fixed_date,
     'str': fixed_type.fixed_str,
     'int': fixed_type.fixed_int,
     'float': fixed_type.fixed_float,

@@ -3,7 +3,7 @@
 需调用 fix_argument_convert() 后才能使用
 不然无法处理 None 值，一碰到 arg_value is None 的情况 Argument.convert() 就会抛出异常
 """
-from datetime import datetime
+from datetime import datetime, date
 
 
 def fix_none(target_type):
@@ -17,6 +17,7 @@ def fix_number(target_type):
 
 
 fixed_datetime = fix_none(lambda time_str: datetime.strptime(time_str, '%Y-%m-%d %H:%M:%S'))
+fixed_date = fix_none(lambda time_str: date.fromtimestamp(time_str))
 fixed_str = fix_none(unicode)
 fixed_int = fix_none(fix_number(int))
 fixed_float = fix_none(fix_number(float))
