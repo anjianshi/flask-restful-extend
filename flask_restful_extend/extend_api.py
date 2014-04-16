@@ -7,7 +7,7 @@ class ErrorHandledApi(restful.Api):
         """
         解决报错信息不会被输出到客户端的问题
 
-        python 标准的 exception 格式为(与此问题无关，仅作为参考)：
+        python 标准的 exception 格式为：
             message: error message
 
         werkzeug 的 HTTPException (包括 BadRequest 等)的格式为：
@@ -29,13 +29,15 @@ class ErrorHandledApi(restful.Api):
             　　　　message: error message
             ｝
 
-        此函数能把 werkzeug 的 HTTPException 和带 code 属性的标准 python exception
+        此函数能把 werkzeug 的 HTTPException 和带 code 属性的标准 python exception 以及其他包含 message 属性的 python exception
         改写成 flask_restful 能识别的形式
         """
         if not hasattr(e, 'data'):
             if hasattr(e, 'description'):
                 e.data = dict(message=e.description)
-            elif hasattr(e, 'code') and hasattr(e, 'message'):
+            elif hasattr(e, 'message'):
+                if not hasattr(e, 'code'):
+                    e.code = 500
                 e.data = dict(message=e.message)
         return super(ErrorHandledApi, self).handle_error(e)
 
