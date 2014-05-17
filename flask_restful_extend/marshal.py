@@ -21,6 +21,12 @@ class _DateTimeField(_fields.Raw):
     def format(self, value):
         try:
             return time.mktime(value.timetuple())
+        except OverflowError:
+            # value 是按照 0 时区计算的，但是 mktime 却会根据本地时区（东八区）计算，
+            # 因此当value比unix纪元后的8小时要早时，得出的时间戳是负数的(东八区比0时区早8小时，0时区的8点是东八区的0点)
+            # 在 windows 下，会直接报错，而不是返回负数时间戳，因此这里要捕获这类错误。
+            # 因为这种时间出现基本都是在调试的时候，所以直接返回 0 时间戳就行了。
+            return 0
         except AttributeError as ae:
             raise _fields.MarshallingException(ae)
 
