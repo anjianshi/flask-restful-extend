@@ -107,7 +107,7 @@ def extend_model():
             for column_name, rules in rule_dict.iteritems():
                 method = make_validate_handler(rules)
                 self.validators = self.validators.union(
-                    {column_name: (method, False)}
+                    {column_name: (method, {'include_removes': False, 'include_backrefs': False})}
                 )
 
         return return_value
