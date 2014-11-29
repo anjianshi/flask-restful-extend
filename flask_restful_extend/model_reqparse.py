@@ -21,9 +21,6 @@ def fix_argument_convert():
 
     不再为 string_types 特别处理 None 值
     （注意，这种情况下，把 None 传给 str Argument 会得到 'None'，而不是像其他类型那样抛出一个错误）
-
-    顺带解决了把`函数`（而不是`类`）作为 Argument 的 type 参数时，
-    一旦 arg value is None，就会因为 issubclass() 调用而抛出异常的问题
     """
     def _convert(self, value, op):
         try:
