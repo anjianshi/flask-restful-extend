@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+### Example ###
+
 class Student(db.Model):
     ...
 
@@ -7,8 +9,8 @@ class Student(db.Model):
         # column_names (str or list of str),
         # validate_func (name in predefined_validate_funcs, or custom function)
         # args will pass to validate_func
-        ('age', 'min', 0)
 
+        ('age', 'min', 0)
         ('name', cust_func, arg_1, arg_2, ...)
     ]
 
