@@ -5,7 +5,7 @@ from model_model import *
 from model_data import *
 import model_route
 from flask import json, url_for
-from flask_restful_extend.extend_model import ModelInvalid
+from flask_restful_extend.model_validates import ModelInvalid
 from flask_restful_extend.marshal import quick_marshal
 import time
 

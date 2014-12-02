@@ -33,9 +33,9 @@
 具体请看相关代码
 （需调用 fix\_argument\_convert() 后才能正常使用）
 
-**extend\_model** (extend\_model.py)  
-扩展 SQLAlchemy 的 model 类，简化 model 验证规则的创建过程  
-此功能与 Flask-RESTful 无关。  
+**model\_validates** (model_validates.py)
+Simplify and extend SQLAlchemy's attribute validates process.
+This function has no relationship with Flask-RESTful.
   
   
 关于各功能的细节，请查看源代码中的注释。  

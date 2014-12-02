@@ -8,4 +8,4 @@ from marshal import marshal_with_model, quick_marshal
 from model_converter import register_model_converter
 from model_reqparse import fix_argument_convert, make_request_parser, populate_model
 import reqparse_fixed_type as fixed_type
-from extend_model import extend_model
+from model_validates import complex_validates
