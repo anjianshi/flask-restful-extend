@@ -8,14 +8,9 @@ from flask.ext.sqlalchemy import SQLAlchemy
 from flask_restful_extend.model_validates import complex_validates
 from project import app
 from model_data import sample_data
-import MySQLdb
 
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://{db_user}:{db_password}@localhost/{db}'.format(
-    db_user='root', db_password='609888', db='flask_restful_extend_test')
-# 添加此参数已解决长时间不访问后，再次访问出现 MySQL server has gone away 的问题
-app.config['SQLALCHEMY_POOL_RECYCLE'] = 500
-
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite://'
 
 db = SQLAlchemy(app)
 
@@ -35,7 +30,7 @@ def valid_cint_n(value, arg1):
     return value % arg1 == 0
 
 
-default_value = dict(cfl=1.5, cbl=True)
+default_value = dict(cfl=1.5, cbl=1)
 
 
 class Entity(db.Model):
@@ -73,18 +68,6 @@ class Entity(db.Model):
 
 
 # 初始化数据
-
-conn = MySQLdb.connect(host="localhost", user="root", passwd="609888", charset='utf8')
-
-cur = conn.cursor()
-cur.execute('SHOW DATABASES')
-if 'flask_restful_extend_test' in [n[0] for n in cur.fetchall()]:
-    cur = conn.cursor()
-    cur.execute('DROP DATABASE flask_restful_extend_test')
-
-cur = conn.cursor()
-cur.execute('CREATE DATABASE flask_restful_extend_test')
-
 db.create_all()
 
 for parent in sample_data['parents']:
