@@ -7,11 +7,10 @@ import unittest
 import model_model as model
 from project import *
 
-
+from error_handle_test import ErrorHandleTestCase
 from json_test import JSONTestCase
 from model_test import SQLAlchemyTestCase
 from reqparse_test import ReqParseTestCase
-from api_test import APITestCase
 
 """
 from flask.ext import restful
