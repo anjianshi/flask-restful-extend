@@ -2,7 +2,7 @@
 
 __version__ = 0.3
 
-from extend_api import ErrorHandledApi
+from error_handle import ErrorHandledApi
 from extend_json import enhance_json_encode, support_jsonp
 from marshal import marshal_with_model, quick_marshal
 from model_converter import register_model_converter

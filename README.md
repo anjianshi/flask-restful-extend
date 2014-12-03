@@ -1,8 +1,7 @@
 在 Flask-RESTful 的基础上，进一步优化对 REST API 的支持，并修复它的一些不合理的行为。  
 
-### API extend
-**ErrorHandledApi**  
-extend error handling
+### Improve error handling  
+**ErrorHandledApi**
 
 
 #### JSON 扩展  
