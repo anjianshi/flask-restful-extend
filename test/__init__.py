@@ -8,7 +8,7 @@ import model_model as model
 from project import *
 
 from error_handle_test import ErrorHandleTestCase
-from json_test import JSONTestCase
+from json_extend_test import JSONEncoderTestCase, JSONPTestCase
 from model_test import SQLAlchemyTestCase
 from reqparse_test import ReqParseTestCase
 
