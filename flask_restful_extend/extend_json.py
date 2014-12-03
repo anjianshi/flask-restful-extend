@@ -33,11 +33,12 @@ def support_jsonp(api_instance, callback_name_source='jsonp'):
     """Let API instance can respond jsonp request automatically.
 
     `callback_name_source` can be a string or a callback.
-    If it is a string, the system will find the argument that named by this string in `query string`.
-     If found, determine this request to be a jsonp request, and use the argument's value as the js callback name.
-    If `callback_name_source` is a callback, this callback should return js callback name when request
-     is a jsonp request, and return False when request is not jsonp request.
-     And system will handle request according to its return value.
+        If it is a string, the system will find the argument that named by this string in `query string`.
+         If found, determine this request to be a jsonp request, and use the argument's value as the js callback name.
+
+        If `callback_name_source` is a callback, this callback should return js callback name when request
+         is a jsonp request, and return False when request is not jsonp request.
+         And system will handle request according to its return value.
 
     default support format：url?jsonp=js_callback_name
     """

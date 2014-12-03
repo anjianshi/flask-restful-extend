@@ -40,7 +40,7 @@ class JSONEncodeManager(object):
          A common_encoder can encode multiple type of data (eg. tuple and list).
 
          JSONEncodeManager will pass any type of data to these encoder.
-         The encoder should raise a TypeError exception, if it think this value shouldn't handle by itself.
+         The encoder should raise a `_CantEncodeObjException` exception, if it think this value shouldn't handle by itself.
          System will catch this exception, and pass data to next encoder.
 
     `specialized` encoder has higher priority than `common_encoder`.
