@@ -6,7 +6,8 @@ import json
 
 
 def enhance_json_encode(api_instance, extra_settings=None):
-    """用 :class:`JSONEncodeManager` 代替 Flask-RESTful 默认的 output_json 函数。"""
+    """use custom `JSONEncodeManager` replace default `output_json` function of Flask-RESTful
+    for the advantage of use `JSONEncodeManager`, please see the comments in `json_encode_manager.py`"""
     api_instance.json_encoder = JSONEncodeManager()
 
     dumps_settings = {} if extra_settings is None else extra_settings
@@ -29,13 +30,16 @@ def enhance_json_encode(api_instance, extra_settings=None):
 
 
 def support_jsonp(api_instance, callback_name_source='jsonp'):
-    """让 API instance 能够自动处理 jsonp 请求。
+    """Let API instance can respond jsonp request automatically.
 
-    callback_name_source 的值可以是一个字符串或者一个回调函数。
-    当它是字符串时，系统会在 query string 中寻找对应名称的参数。若存在，则把当前请求视为 jsonp 请求，并把它的值当作 js 回调函数的名称。
-    如果 callback_name_source 是一个回调函数，系统会把它的返回值作为 js 回调函数名称。当请求类型不是 jsonp 时，这个回调函数应该返回 False。
+    `callback_name_source` can be a string or a callback.
+    If it is a string, the system will find the argument that named by this string in `query string`.
+     If found, determine this request to be a jsonp request, and use the argument's value as the js callback name.
+    If `callback_name_source` is a callback, this callback should return js callback name when request
+     is a jsonp request, and return False when request is not jsonp request.
+     And system will handle request according to its return value.
 
-    默认支持的格式：url?jsonp=js_callback_name
+    default support format：url?jsonp=js_callback_name
     """
     output_json = api_instance.representations['application/json']
 

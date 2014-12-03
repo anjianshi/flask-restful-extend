@@ -4,12 +4,13 @@
 **ErrorHandledApi**
 
 
-#### JSON 扩展  
-**enhance\_json\_encode** (extend\_json.py, json\_encode\_manager.py)  
-增强对 json 的处理，默认支持更多数据类型，并可方便的处理新的类型  
+#### JSON extent
+**enhance\_json\_encode** (extend\_json.py, json\_encode\_manager.py)
+Extend json encode support, support more data type by default,
+and you can simply add support for new data type.
   
 **support\_jsonp** (extend\_json.py)  
-自动响应 jsonp 请求  
+Respond jsonp request automatically
 
 
 #### SQLAlchemy 扩展  
