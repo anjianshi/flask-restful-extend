@@ -3,7 +3,7 @@ from res import *
 from flask import request
 from flask.ext import restful
 import flask_restful_extend as restful_extend
-from flask_restful_extend.json_encode_manager import _CantEncodeObjException
+from flask_restful_extend.json_encode_manager import CantEncodeObjException
 from datetime import datetime
 import time
 from decimal import Decimal
@@ -81,7 +81,7 @@ class JSONEncoderTestCase(MyTestCase):
 
         # test if exception throw in common_encoder can be handle well
         def custom_common_encoder1(obj):
-            raise _CantEncodeObjException()
+            raise CantEncodeObjException()
 
         self.api.json_encoder.register(custom_common_encoder1)
 
@@ -95,7 +95,7 @@ class JSONEncoderTestCase(MyTestCase):
             if isinstance(obj, CustomDataType2):
                 return dict(c=obj.c, d=obj.d)
             else:
-                raise _CantEncodeObjException()
+                raise CantEncodeObjException()
 
         self.api.json_encoder.register(custom_common_encoder)
 

@@ -9,7 +9,7 @@ def _transform_iterable_obj(obj):
     if hasattr(obj, '__iter__'):
         return [i for i in obj]
     else:
-        raise _CantEncodeObjException()
+        raise CantEncodeObjException()
 
 _predefined_json_encoders = [
     (datetime, lambda value: time.mktime(value.timetuple())),
@@ -40,7 +40,7 @@ class JSONEncodeManager(object):
          A common_encoder can encode multiple type of data (eg. tuple and list).
 
          JSONEncodeManager will pass any type of data to these encoder.
-         The encoder should raise a `_CantEncodeObjException` exception, if it think this value shouldn't handle by itself.
+         The encoder should raise a `CantEncodeObjException` exception, if it think this value shouldn't handle by itself.
          System will catch this exception, and pass data to next encoder.
 
     `specialized` encoder has higher priority than `common_encoder`.
@@ -74,10 +74,10 @@ class JSONEncodeManager(object):
             else:
                 try:
                     return encoder(o)
-                except _CantEncodeObjException:
+                except CantEncodeObjException:
                     pass
         return self.flask_json_encoder.default(o)
 
 
-class _CantEncodeObjException(Exception):
+class CantEncodeObjException(Exception):
     pass
