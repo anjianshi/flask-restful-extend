@@ -11,7 +11,7 @@ class ErrorHandleTestCase(MyTestCase):
         self.setup_app()
 
         testcase = self
-        self.exception_to_raise = None
+        testcase.exception_to_raise = None
 
         class Routes(restful.Resource):
             def get(self):
