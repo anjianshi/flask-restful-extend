@@ -1,8 +1,8 @@
 在 Flask-RESTful 的基础上，进一步优化对 REST API 的支持，并修复它的一些不合理的行为。  
 
-### API 扩展  
+### API extend
 **ErrorHandledApi**
-增强错误处理
+extend error handling
 
 
 #### JSON 扩展  
@@ -33,7 +33,7 @@
 具体请看相关代码
 （需调用 fix\_argument\_convert() 后才能正常使用）
 
-**model\_validates** (model_validates.py)
+**model\_validates** (model_validates.py)  
 Simplify and extend SQLAlchemy's attribute validates process.
 This function has no relationship with Flask-RESTful.
   

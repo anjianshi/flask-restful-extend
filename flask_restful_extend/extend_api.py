@@ -3,35 +3,63 @@ from flask.ext import restful
 
 
 class ErrorHandledApi(restful.Api):
-    def handle_error(self, e):
-        """
-        解决报错信息不会被输出到客户端的问题
+    """Usage:
+        api = restful_extend.ErrorHandledApi(app)
 
-        python 标准的 exception 格式为：
+    instead of:
+
+        api = restful.Api(app)
+    """
+
+    def handle_error(self, e):
+        """Resolve sometimes the error message specified by programmer won't output to user's problem.
+
+        Flask-RESTFul's error handler, handling format different exceptions has different behavior.
+        If we report error by `restful.abort()`,
+         likes `restful.abort(400, "message": "my_msg", "custom_data": "value")`,
+         it will output:
+
+            Status     400
+            Content    {"message": "my_msg", "custom_data": "value"}
+
+        You see, the error message was outputted normally.
+
+        But, if we use `flask.abort()`, or raise an exception by any other way,
+         example `from werkzeug.exceptions import BadRequest; raise BadRequest('my_msg')`,
+         it will output:
+
+            Status     400
+            Content    {"status": 400, "message": "Bad Request"}
+
+        The output content's format was change, and the error message specified by ourselves was lose.
+
+        Let's see why.
+
+        The exception-format supported by Flask-RESTFul's error handler was:
+            code: status code
+            data: ｛
+            　　　　message: error message
+            }
+
+        Exceptions raised by Flask-RESTFul's format was, so error handler can handling it normally:
+            code: status code
+            description: predefined error message for this status code
+            data: ｛
+            　　　　message: error message
+            ｝
+
+        This is python's standard Exception's format:
             message: error message
 
-        werkzeug 的 HTTPException (包括 BadRequest 等)的格式为：
-            code: http code
-            name: str(e) 时输出的字符串
+        And this is `werkzeug.exceptions.HTTPException` (same as BadRequest) 's format:
+            code: status code
+            name: the name correspondence to status code
             description: error message
 
-        flask_restful.abort (包括 flask_restful.reqparse.Argument.handle_validation_error) 抛出的格式为：
-        (详情见 test/api_exceptions.py)
-            code: http code
-            description: predefined error message for this http code
-            data: ｛
-            　　　　message: error message
-            ｝
+        Flask-RESTFul's error handler hasn't handle these exceptions as my expectation.
+        What I need to do, was create an attribute names `code` for exceptions doesn't have it,
+         and create an attribute names `data` to represent the original error message."""
 
-        flask_restful 的 handle_error 函数支持的格式为：
-            code: http code
-            data: ｛
-            　　　　message: error message
-            ｝
-
-        此函数能把 werkzeug 的 HTTPException 和带 code 属性的标准 python exception 以及其他包含 message 属性的 python exception
-        改写成 flask_restful 能识别的形式
-        """
         if not hasattr(e, 'data'):
             if hasattr(e, 'description'):
                 e.data = dict(message=e.description)
@@ -42,5 +70,6 @@ class ErrorHandledApi(restful.Api):
         return super(ErrorHandledApi, self).handle_error(e)
 
     def unauthorized(self, response):
-        """对于未授权的请求，只返回 403，不弹出登录对话框"""
+        """In default, when users was unauthorized, Flask-RESTFul will popup an login dialog for user.
+        But for an RESTFul app, this is useless, so I override the method to remove this behavior."""
         return response
