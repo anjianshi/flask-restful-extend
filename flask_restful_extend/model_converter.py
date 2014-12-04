@@ -20,7 +20,7 @@ def register_model_converter(model, app):
         def get_classmate_info(classmates):
             pass
 
-    This only support model's have single primary key, and primary key's name was `id`.
+    This only support model's have single primary key.
     You need call this function before create view function.
     """
     if hasattr(model, 'id'):
