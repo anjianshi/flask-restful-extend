@@ -4,17 +4,24 @@ from werkzeug.exceptions import NotFound
 
 
 def register_model_converter(model, app):
-    """
-    为 model 添加 url converter
+    """Add url converter for model
 
-    添加后的使用方法：
-    （冒号左侧的部分是表名，不是类名）
-    @route('/goods/<goods:goods>')
-    def get_goods_detail(goods):
-        pass
+    Example:
+        class Student(db.model):
+            __tablename__ = 'tbl_student'
 
-    只支持单主键，且主键字段名为 id 的 model
-    须在 view method 加载前调用
+            id = Column(Integer, primary_key=True)
+            name =  Column(String(50))
+
+        register_model_converter(Student)
+
+        # Then (notice: the converter key was the table name, not model class name)
+        @route('/classmates/<tbl_student:classmates>')
+        def get_classmate_info(classmates):
+            pass
+
+    This only support model's have single primary key, and primary key's name was `id`.
+    You need call this function before create view function.
     """
     if hasattr(model, 'id'):
         class Converter(_ModelConverter):
@@ -28,7 +35,7 @@ class _ModelConverter(BaseConverter):
     def to_python(self, inst_id):
         instance = self._model.query.get(inst_id)
         if instance is None:
-            raise NotFound(u'{}(id={})不存在，请求不合法'.format(self._model.__name__, inst_id))
+            raise NotFound(u'{}(id={}) not exists，request invalid'.format(self._model.__name__, inst_id))
         return instance
 
     def to_url(self, inst):
