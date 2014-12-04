@@ -25,6 +25,12 @@ class JSONEncoderTestCase(MyTestCase):
 
         restful_extend.enhance_json_encode(self.api)
 
+    def verify(self, data, expect_text_result):
+        self.json_data = data
+        rv = self.client.get('/')
+        self.assertEqual(rv.content_type, 'application/json')
+        self.assertEqual(rv.data, expect_text_result)
+
     def test_basic_type(self):
         dataset = [
             (1, '1'),
@@ -107,47 +113,40 @@ class JSONEncoderTestCase(MyTestCase):
         for data, result in dataset:
             self.verify(data, result)
 
-    def verify(self, data, expect_text_result):
-        self.json_data = data
-        rv = self.client.get('/')
-        self.assertEqual(rv.content_type, 'application/json')
-        self.assertEqual(rv.data, expect_text_result)
-
 
 class JSONPTestCase(MyTestCase):
+
+    callback_arg_name = 'jsonp_callback'
+    js_callback = 'doIt'
+    return_data = 'custom_result'
+
     def setUp(self):
         self.setup_app()
 
-    def test_str_source(self):
+        testcase = self
+
         class Routes(restful.Resource):
             def get(self):
-                return 'custom_result'
+                return testcase.return_data
 
-        api = restful.Api(self.app)
-        api.add_resource(Routes, '/')
-        restful_extend.support_jsonp(api, 'jsonp_callback')
+        self.api = restful.Api(self.app)
+        self.api.add_resource(Routes, '/')
 
-        rv = self.client.get('/?jsonp_callback=doIt')
+    def verify(self):
+        rv = self.client.get('/?{}={}'.format(self.callback_arg_name, self.js_callback))
         self.assertEqual(rv.content_type, 'application/json')
-        self.assertEqual(rv.data, 'doIt("custom_result")')
+        self.assertEqual(rv.data, '{}("{}")'.format(self.js_callback, self.return_data))
 
         rv = self.client.get('/')
         self.assertEqual(rv.content_type, 'application/json')
-        self.assertEqual(rv.data, '"custom_result"')
+        self.assertEqual(rv.data, '"{}"'.format(self.return_data))
+
+    def test_str_source(self):
+        restful_extend.support_jsonp(self.api, self.callback_arg_name)
+        self.verify()
 
     def test_fn_source(self):
-        class Routes(restful.Resource):
-            def get(self):
-                return 'custom_result2'
+        restful_extend.support_jsonp(self.api, lambda: request.args.get(self.callback_arg_name, False))
+        self.verify()
 
-        api = restful.Api(self.app)
-        api.add_resource(Routes, '/')
-        restful_extend.support_jsonp(api, lambda: request.args.get('jsonp_callback2', False))
 
-        rv = self.client.get('/?jsonp_callback2=doIt')
-        self.assertEqual(rv.content_type, 'application/json')
-        self.assertEqual(rv.data, 'doIt("custom_result2")')
-
-        rv = self.client.get('/')
-        self.assertEqual(rv.content_type, 'application/json')
-        self.assertEqual(rv.data, '"custom_result2"')
