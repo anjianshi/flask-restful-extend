@@ -3,6 +3,8 @@ __all__ = ['fix_argument_convert', 'make_request_parser', 'populate_model']
 from flask.ext.restful import reqparse
 from flask import request
 import reqparse_fixed_type as fixed_type
+import inspect
+import six
 
 
 _type_dict = {
@@ -22,14 +24,13 @@ def fix_argument_convert():
     不再为 string_types 特别处理 None 值
     （注意，这种情况下，把 None 传给 str Argument 会得到 'None'，而不是像其他类型那样抛出一个错误）
     """
+    orig_convert = reqparse.Argument.convert
+
     def _convert(self, value, op):
-        try:
-            return self.type(value, self.name, op)
-        except TypeError:
-            try:
-                return self.type(value, self.name)
-            except TypeError:
-                return self.type(value)
+        if value is None and inspect.isclass(self.type) and issubclass(self.type, six.string_types):
+            return 'None'
+        else:
+            return orig_convert(self, value, op)
     reqparse.Argument.convert = _convert
 
 
@@ -131,8 +132,9 @@ class PopulatorArgument(reqparse.Argument):
     以 QueryString / FormData 形式提交的请求，每个 arg 的值在格式化之前都只能是字符串或空字符串。
     对于 action != store 的 arg，可以指定多个值（?a=1&a=2），通过 type 指定的类型会分别应用到每个值上
 
-    以 JSON 形式提交的请求，arg 的值在格式化之前就可以是任意类型，但不支持给单个 arg 指定多个值（因此，action 参数不起作用）
-    虽然可以把参数值设为数组来达到同样的效果，但这需要把 type 指定为 list，也就无法再给列表内部的值指定类型了。
+    以 JSON 形式提交的请求，arg 的值在格式化之前就可以是除数组外任意类型，
+    如果 arg 的值是一个数组， Flask-RESTFul 会视为对这个参数进行了多次赋值，并将 type 指定的类型会分别应用到每个值上
+    例如 json 的 {"a": ["x", "y"]} 相当于 QueryString 的 ?a=x&a=y
 
     **关于值解析**
     解析前端提交的参数值时，不会对参数值有任何额外的处理（如预先进行一次类型转换），或者额外的行为（如碰到 None 就调用构造器调用），
@@ -152,7 +154,7 @@ class PopulatorArgument(reqparse.Argument):
         super(PopulatorArgument, self).__init__(*args, **kwargs)
 
     def parse(self, req):
-        results = super(PopulatorArgument, self).parse(req)
+        results = super(PopulatorArgument, self).parse(req)[0]
 
         # 因为把 action 强制设定为了 append，因此在提交了参数值的情况下，results 一定是一个数组，
         # 不会和 self.default 是同一个值
