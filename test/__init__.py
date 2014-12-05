@@ -4,13 +4,10 @@ import sys
 sys.path.insert(1, sys.path[0] + '/../')
 
 import unittest
-import model_model as model
-from project import *
 
 from error_handle_test import ErrorHandleTestCase
 from json_extend_test import JSONEncoderTestCase, JSONPTestCase
-from model_test import SQLAlchemyTestCase
-from reqparse_test import ReqParseTestCase
+from model_test import ModelValidateTestCase, MarshalTestCase, ReqparseTestCase
 
 """
 from flask.ext import restful
