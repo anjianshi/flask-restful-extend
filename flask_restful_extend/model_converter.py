@@ -8,15 +8,12 @@ def register_model_converter(model, app):
 
     Example:
         class Student(db.model):
-            __tablename__ = 'tbl_student'
-
             id = Column(Integer, primary_key=True)
             name =  Column(String(50))
 
         register_model_converter(Student)
 
-        # Then (notice: the converter key was the table name, not model class name)
-        @route('/classmates/<tbl_student:classmates>')
+        @route('/classmates/<Student:classmates>')
         def get_classmate_info(classmates):
             pass
 
