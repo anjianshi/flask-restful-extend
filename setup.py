@@ -15,11 +15,11 @@ setup(
     license='MIT',
     author='anjianshi',
     author_email='anjianshi@gmail.com',
-    description='extend flask-restfurl and fix some unreasonable behave',
+    description="Improve Flask-RESTFul's behavior. Add some new features.",
     packages=['flask_restful_extend'],
     zip_safe=False,
     platforms='any',
-    install_requires=['Flask>=0.8', 'Flask-RESTful', 'Flask-SQLAlchemy'],
+    install_requires=['Flask>=0.10', 'Flask-RESTful>=0.3', 'Flask-SQLAlchemy'],
     keywords=['flask', 'python', 'rest', 'api'],
     classifiers=[
         'Intended Audience :: Developers',
