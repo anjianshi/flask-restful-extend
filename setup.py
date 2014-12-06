@@ -6,11 +6,9 @@ try:
 except ImportError:
     from distutils.core import setup
 
-import flask_restful_extend
-
 setup(
     name='Flask-RESTful-extend',
-    version=flask_restful_extend.__version__,
+    version='0.3.1',
     url='https://github.com/anjianshi/flask-restful-extend',
     license='MIT',
     author='anjianshi',
