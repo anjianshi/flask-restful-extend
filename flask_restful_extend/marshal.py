@@ -87,10 +87,11 @@ class _DateTimeField(_fields.Raw):
         try:
             return time.mktime(value.timetuple())
         except OverflowError:
-            # value 是按照 0 时区计算的，但是 mktime 却会根据本地时区（东八区）计算，
-            # 因此当value比unix纪元后的8小时要早时，得出的时间戳是负数的(东八区比0时区早8小时，0时区的8点是东八区的0点)
-            # 在 windows 下，会直接报错，而不是返回负数时间戳，因此这里要捕获这类错误。
-            # 因为这种时间出现基本都是在调试的时候，所以直接返回 0 时间戳就行了。
+            # The `value` was generate by time zone UTC+0,
+            #  but `time.mktime()` will generate timestamp by local time zone (eg. in China, was UTC+8).
+            # So, in some situation, we may got a timestamp that was negative.
+            # In Linux, there's no problem. But in windows, this will cause an `OverflowError`.
+            # Thinking of generally we don't need to handle a time so long before, at here we simply return 0.
             return 0
 
         except AttributeError as ae:

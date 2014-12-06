@@ -19,10 +19,11 @@ _type_dict = {
 
 
 def fix_argument_convert():
-    """修改 reqparse.Argument.convert 的默认行为
+    """Change `reqparse.Argument.convert`'s original behavior.
 
-    不再为 string_types 特别处理 None 值
-    （注意，这种情况下，把 None 传给 str Argument 会得到 'None'，而不是像其他类型那样抛出一个错误）
+    No special handle None value for `string_types`
+    (Notice: After this, if you pass None value to a `str Argument`, you will got a string 'None',
+             rather then raise an exception as in other types)
     """
     orig_convert = reqparse.Argument.convert
 
@@ -35,16 +36,20 @@ def fix_argument_convert():
 
 
 def make_request_parser(model_or_inst, excludes=None, only=None, for_populate=False):
-    """
-    传入一个 model 类(model)或者 model 实例(model_inst)
-    根据对应的 model 的定义，构建一个从 request.json 中提取用户输入的 RequestParser。
+    """Pass a `model class` or `model instance` to this function,
+     then, it will generate a `RequestParser` that extract user request data from `request.json`
+     according to the model class's definition.
 
-    excludes 和 only 用于控制哪些 column 应该被处理。若同时传入 excludes 和 only，只有 excludes 会生效。
-    model 的主键默认不会被添加到 RequestParser 的 args 列表里。
-    可通过在 only 中指定这个主键，强制把它添加进去。
+    Parameter `excludes` and `only` can be `str` or list of `str`,
+     then are used to specify which columns should be handled.
+    If you passed `excludes` and `only` at same time, only `excludes` will be used.
+    And, the primary key of the model will not be added to `RequestParser`'s argument list,
+     unless you explicitly specify it use `only` parameter.
 
-    若传入的是 model 类，还会根据 model column 的 nullable 属性，对用户传入的参数添加 required 检查
-    (若传入的是 model_inst，则不会进行此项检查。因为这种情况下，应该允许用户忽略对某个字段的赋值)
+    If you pass in a model class, but not a model instance, the function will doing `required` checking,
+     for columns that nullable=False.
+    (If you pass in a model instance, the `required` checking will not proceed. Because in this situation,
+     we should allow the user to ignore the assignment to a field)
     """
     is_inst = _is_inst(model_or_inst)
 
@@ -67,6 +72,8 @@ def make_request_parser(model_or_inst, excludes=None, only=None, for_populate=Fa
         kwargs = {
             "type": _type_dict.get(col_type.__name__, col_type) if hasattr(col_type, '__name__') else col_type
         }
+        # When the context was to creating a new model instance, if a field has no default value, and is not nullable,
+        #  mark it's corresponding argument as `required`.
         # 创建新数据库实例时，若一个字段既没有默认值，又不允许 NULL，则把它对应 arg 设为 required
         if not is_inst and col.default is None and col.server_default is None and not col.nullable:
             kwargs["required"] = True
@@ -76,8 +83,9 @@ def make_request_parser(model_or_inst, excludes=None, only=None, for_populate=Fa
 
 def populate_model(model_or_inst, excludes=None, only=None):
     """
-    调用 make_request_parser() 构建一个 RequestParser 并用它提取用户输入，填充到指定的 model_inst 中。
-    (若传入的是 model 类，会创建一个它的实例，并将其作为 model_inst)
+    Call `make_request_parser()` to build a `RequestParser`, use it extract user request data,
+      and padding the data into model instance.
+    If user passed a model class, instead of model instance, create a new instance use the extracted data.
     """
     inst = model_or_inst if _is_inst(model_or_inst) else model_or_inst()
 
@@ -95,13 +103,17 @@ def _is_inst(model_or_inst):
 
 
 class RequestPopulator(reqparse.RequestParser):
-    """在原来的流程下，一个参数无论是用户没提交，还是提交了 null 值，在解析出来的参数列表里都会把它的值设为 None
-    这在一般情况下没问题，但在 populate 模式下（用于填充 model instance）会出错。
-    在 populate 模式下，若用户没提交此参数，应忽略它。
-    只有用户确实提交了 null 时，才把 instance 的对应字段设为 None
+    """Under the original process, whether client hasn't assign a value, or assign a null value,
+     the argument's value will be None.
+    That's no problem, generally. But in populate operation (eg. updating model instance's fields),
+     it will cause problem.
+    When we are do populating, we should not update the field if the client hasn't assign a value to it.
+    And update it only if the client really assign a new value.
 
-    因此，对于这个专为 populate 创建的 parser ，未出现的参数压根不会让它出现在解析出来的参数列表里。
-    而 null 值参数就会将参数值设为 None，使得其最终能够被写入数据库。
+    The `RequestPopulator` parser is created specifically for the populate operation.
+    In this parser, arguments that has not assigned a value,
+     will not appear in argument list (implemented through `PopulatorArgument`).
+    So the model fields corresponding to these arguments can keep its original value.
     """
     def __init__(self, *args, **kwargs):
         kwargs['argument_class'] = PopulatorArgument
@@ -124,8 +136,9 @@ class RequestPopulator(reqparse.RequestParser):
 
 
 class PopulatorArgument(reqparse.Argument):
-    """为 populate 操作定制的 Argument 类。
-    当参数未赋值时，会抛出异常而不是应用默认值。因此，default 参数在这里无效
+    """Argument type that created specifically for populate operation.
+    When the argument is not assigned, it will raise an exception rather than applying default value.
+    (So, the `default` parameter will not be used)
 
     **关于值类型**
     （`arg` 指 Argument 实例，`参数` 指构建 arg 时给出的参数）

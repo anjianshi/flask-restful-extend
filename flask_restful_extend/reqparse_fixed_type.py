@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-需调用 fix_argument_convert() 后才能使用
-不然无法处理 None 值，一碰到 arg_value is None 的情况 Argument.convert() 就会抛出异常
+Call `fix_argument_convert()` function before use these type constructors.
+Otherwise, they can't handle None value properly,
+ the `Argument.convert()` will raise an exception when `arg_value is None`
 """
 from datetime import datetime, date
 
 
 def fix_none(target_type):
-    """让某个构造器能够处理 None 值
-    碰到 None 时直接返回，不是 None 时才进行类型转换"""
+    """Let a type constructor can handle None value:
+        doing type conversion only when it is not None,
+        when the value is None, return it directly."""
     return lambda value: target_type(value) if value is not None else None
 
 
