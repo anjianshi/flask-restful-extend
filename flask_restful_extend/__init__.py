@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-__version__ = 0.3
+__version__ = '0.3.1'
 
 from error_handling import ErrorHandledApi
 from extend_json import enhance_json_encode, support_jsonp
