@@ -29,7 +29,7 @@ def enhance_json_encode(api_instance, extra_settings=None):
         return resp
 
 
-def support_jsonp(api_instance, callback_name_source='jsonp'):
+def support_jsonp(api_instance, callback_name_source='callback'):
     """Let API instance can respond jsonp request automatically.
 
     `callback_name_source` can be a string or a callback.
@@ -40,7 +40,7 @@ def support_jsonp(api_instance, callback_name_source='jsonp'):
          is a jsonp request, and return False when request is not jsonp request.
          And system will handle request according to its return value.
 
-    default support format：url?jsonp=js_callback_name
+    default support format：url?callback=js_callback_name
     """
     output_json = api_instance.representations['application/json']
 
