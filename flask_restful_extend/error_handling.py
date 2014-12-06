@@ -14,7 +14,7 @@ class ErrorHandledApi(restful.Api):
     def handle_error(self, e):
         """Resolve sometimes the error message specified by programmer won't output to user's problem.
 
-        Flask-RESTFul's error handler, handling format different exceptions has different behavior.
+        Flask-RESTFul's error handler handling format different exceptions has different behavior.
         If we report error by `restful.abort()`,
          likes `restful.abort(400, "message": "my_msg", "custom_data": "value")`,
          it will output:
@@ -22,7 +22,7 @@ class ErrorHandledApi(restful.Api):
             Status     400
             Content    {"message": "my_msg", "custom_data": "value"}
 
-        You see, the error message was outputted normally.
+        The error message was outputted normally.
 
         But, if we use `flask.abort()`, or raise an exception by any other way,
          example `from werkzeug.exceptions import BadRequest; raise BadRequest('my_msg')`,
