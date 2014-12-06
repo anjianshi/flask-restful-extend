@@ -13,8 +13,8 @@ def register_model_converter(model, app):
 
         register_model_converter(Student)
 
-        @route('/classmates/<Student:classmates>')
-        def get_classmate_info(classmates):
+        @route('/classmates/<Student:classmate>')
+        def get_classmate_info(classmate):
             pass
 
     This only support model's have single primary key.
