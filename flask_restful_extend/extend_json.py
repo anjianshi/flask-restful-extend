@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from flask import request, current_app, make_response
-from json_encode_manager import JSONEncodeManager
+from .json_encode_manager import JSONEncodeManager
 import json
 
 
