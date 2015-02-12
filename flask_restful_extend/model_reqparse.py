@@ -2,7 +2,7 @@
 __all__ = ['fix_argument_convert', 'make_request_parser', 'populate_model']
 from flask.ext.restful import reqparse
 from flask import request
-import reqparse_fixed_type as fixed_type
+from . import reqparse_fixed_type as fixed_type
 import inspect
 import six
 
@@ -53,11 +53,11 @@ def make_request_parser(model_or_inst, excludes=None, only=None, for_populate=Fa
     """
     is_inst = _is_inst(model_or_inst)
 
-    if isinstance(excludes, str) or isinstance(excludes, unicode):
+    if isinstance(excludes, six.string_types):
         excludes = [excludes]
     if excludes and only:
         only = None
-    elif isinstance(only, str) or isinstance(only, unicode):
+    elif isinstance(only, six.string_types):
         only = [only]
 
     parser = RequestPopulator() if for_populate else reqparse.RequestParser()

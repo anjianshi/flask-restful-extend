@@ -8,7 +8,7 @@ except ImportError:
 
 setup(
     name='Flask-RESTful-extend',
-    version='0.3.2',
+    version='0.3.3',
     url='https://github.com/anjianshi/flask-restful-extend',
     license='MIT',
     author='anjianshi',
@@ -17,7 +17,7 @@ setup(
     packages=['flask_restful_extend'],
     zip_safe=False,
     platforms='any',
-    install_requires=['Flask>=0.10', 'Flask-RESTful>=0.3', 'Flask-SQLAlchemy'],
+    install_requires=['Flask>=0.10', 'Flask-RESTful>=0.3', 'Flask-SQLAlchemy', "six"],
     keywords=['flask', 'python', 'rest', 'api'],
     classifiers=[
         'Intended Audience :: Developers',

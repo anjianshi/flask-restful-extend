@@ -14,6 +14,7 @@ from datetime import datetime
 import time
 from copy import copy
 import json
+import six
 
 
 class ModelValidateTestCase(MyTestCase):
@@ -288,8 +289,8 @@ class ReqparseTestCase(_ModelTestCase):
 
         orig_str = 'abc'
         new_str = fixed_str(orig_str)
-        self.assertTrue(isinstance(new_str, unicode))
-        self.assertEqual(new_str, unicode(orig_str))
+        self.assertTrue(isinstance(new_str, six.text_type))
+        self.assertEqual(new_str, six.text_type(orig_str))
 
         self.assertEqual(fixed_int(987), 987)
         self.assertEqual(fixed_int("850"), 850)

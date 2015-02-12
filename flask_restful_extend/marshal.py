@@ -2,6 +2,7 @@
 from flask.ext.restful import fields as _fields, marshal_with as _marshal_with
 from functools import wraps
 import time
+import six
 
 
 def marshal_with_model(model, excludes=None, only=None):
@@ -27,11 +28,11 @@ def marshal_with_model(model, excludes=None, only=None):
 
         # response: [{"name": "student_a", "age": "16"}, {"name": "student_b", "age": 18}]
     """
-    if isinstance(excludes, str) or isinstance(excludes, unicode):
+    if isinstance(excludes, six.string_types):
         excludes = [excludes]
     if excludes and only:
         only = None
-    elif isinstance(only, str) or isinstance(only, unicode):
+    elif isinstance(only, six.string_types):
         only = [only]
 
     field_definition = {}
