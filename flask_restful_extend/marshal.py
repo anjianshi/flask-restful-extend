@@ -5,13 +5,16 @@ import time
 import six
 
 
-def marshal_with_model(model, excludes=None, only=None):
+def marshal_with_model(model, excludes=None, only=None, extends=None):
     """With this decorator, you can return ORM model instance, or ORM query in view function directly.
     We'll transform these objects to standard python data structures, like Flask-RESTFul's `marshal_with` decorator.
     And, you don't need define fields at all.
 
     You can specific columns to be returned, by `excludes` or `only` parameter.
     (Don't use these tow parameters at the same time, otherwise only `excludes` parameter will be used.)
+
+    If you want return fields that outside of model, or overwrite the type of some fields,
+    use `extends` parameter to specify them.
 
     Notice: this function only support `Flask-SQLAlchemy`
 
@@ -24,9 +27,17 @@ def marshal_with_model(model, excludes=None, only=None):
         class SomeApi(Resource):
             @marshal_with_model(Student, excludes=['id'])
             def get(self):
-              return Student.query
+                return Student.query
 
         # response: [{"name": "student_a", "age": "16"}, {"name": "student_b", "age": 18}]
+
+        class AnotherApi(Resource):
+            @marshal_with_model(Student, extends={"nice_guy": fields.Boolean, "age": fields.String})
+            def get(self):
+                student = Student.query.get(1)
+                student.nice_guy = True
+                student.age = "young" if student.age < 18 else "old"    # transform int field to string
+                return student
     """
     if isinstance(excludes, six.string_types):
         excludes = [excludes]
@@ -44,6 +55,10 @@ def marshal_with_model(model, excludes=None, only=None):
                 continue
 
         field_definition[col.name] = _type_map[col.type.python_type.__name__]
+
+    if extends is not None:
+        for k, v in extends.items():
+            field_definition[k] = v
 
     def decorated(f):
         @wraps(f)

@@ -9,10 +9,12 @@ from flask_restful_extend.model_reqparse import fix_argument_convert, make_reque
 from flask_restful_extend.reqparse_fixed_type import *
 from flask.ext import restful
 from flask.ext.restful.reqparse import Argument
+from flask.ext.restful import fields
 from flask import url_for, request
 from datetime import datetime
 import time
 from copy import copy
+from copy import deepcopy
 import json
 import six
 
@@ -248,6 +250,21 @@ class MarshalTestCase(_ModelTestCase):
         self.verify_marshal(self.TestModel.query.get(1), self.result1, only=['id', 'col_int'])
         self.verify_marshal(self.TestModel.query.get(1), self.result1,
                             excludes=['id', 'col_int'], only=['col_str_null'])
+
+    def test_extends(self):
+        extends = {
+            # test extend column
+            "extend_col": fields.String,
+            # test overwrite exists column
+            "col_int": fields.Boolean
+        }
+
+        data = deepcopy(self.TestModel.query.get(1))
+        result = copy(self.result1)
+        data.extend_col = result["extend_col"] = "abc"
+        data.col_int = result["col_int"] = True
+
+        self.verify_marshal(data, result, extends=extends)
 
     def test_quick_marshal(self):
         self.assertEqual(
