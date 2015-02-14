@@ -199,14 +199,29 @@ class _ModelTestCase(MyTestCase):
         self.db.session.add(self.TestModel(**self.data2))
         self.db.session.commit()
 
+    class FixedRequestContext(object):
+        def __init__(self, orig_context):
+            self.context = orig_context
+
+        def __enter__(self, *args, **kwargs):
+            ret = self.context.__enter__(*args, **kwargs)
+            request.unparsed_arguments = dict(Argument('').source(request))
+            return ret
+
+        def __exit__(self, *args, **kwargs):
+            return self.context.__exit__(*args, **kwargs)
+
+    def fixed_request_context(self, *args, **kwargs):
+        return self.FixedRequestContext(self.app.test_request_context(*args, **kwargs))
+
 
 class MarshalTestCase(_ModelTestCase):
     def setUp(self):
         super(MarshalTestCase, self).setUp()
         self.maxDiff = None
 
-    def verify_marshal(self, model_data, expect_result, excludes=None, only=None):
-        @marshal_with_model(self.TestModel, excludes=excludes, only=only)
+    def verify_marshal(self, model_data, expect_result, excludes=None, only=None, extends=None):
+        @marshal_with_model(self.TestModel, excludes=excludes, only=only, extends=extends)
         def fn():
             return model_data
 
@@ -267,7 +282,7 @@ class ReqparseTestCase(_ModelTestCase):
         fix_argument_convert()
 
     def test_fix_argument_convert(self):
-        with self.app.test_request_context(
+        with self.fixed_request_context(
                 method='POST',
                 data='{"foo": null}',
                 content_type="application/json"):
@@ -309,7 +324,7 @@ class ReqparseTestCase(_ModelTestCase):
             self.assertIsNone(fixed_type(None))
 
         # 测试实际调用时能否正确运行
-        with self.app.test_request_context(
+        with self.fixed_request_context(
                 method='POST',
                 data='{"n1": 100, "n2": "100", "n3": "", "n4": null}',
                 content_type="application/json"):
@@ -320,10 +335,11 @@ class ReqparseTestCase(_ModelTestCase):
 
     def test_populator_argument(self):
         # 测试 JSON 下的情况
-        with self.app.test_request_context(
+        with self.fixed_request_context(
                 method='POST',
                 data='{"foo": 100, "bar": "abc", "li": [300, 100, 200]}',
                 content_type="application/json"):
+
             # 确认能否成功取到参数值
             # 因为内部实现中涉及到了 Argument 的 action 属性，同时也要确认一下有没有造成不良影响
 
@@ -362,7 +378,7 @@ class ReqparseTestCase(_ModelTestCase):
                 PopulatorArgument('no_val_arg').parse(request)
 
         # 测试 QueryString / FormData 下的情况
-        with self.app.test_request_context('/?foo=100&bar=abc&li=300&li=100&li=200', method='GET'):
+        with self.fixed_request_context('/?foo=100&bar=abc&li=300&li=100&li=200', method='GET'):
             # 确认能否成功取到参数值
             # 因为内部实现中涉及到了 Argument 的 action 属性，同时也要确认一下有没有造成不良影响
 
@@ -397,7 +413,7 @@ class ReqparseTestCase(_ModelTestCase):
             )
 
     def test_request_populator(self):
-        with self.app.test_request_context(
+        with self.fixed_request_context(
                 method='POST',
                 data='{"foo": 100, "bar": "abc"}',
                 content_type="application/json"):
@@ -487,11 +503,10 @@ class ReqparseTestCase(_ModelTestCase):
             'col_bool_null': True,
         }
 
-        with self.app.test_request_context(
+        with self.fixed_request_context(
                 method='POST',
                 data=json.dumps(data),
                 content_type="application/json"):
-
             # model
             entity = populate_model(self.TestModel, only=[col for col, val in data.iteritems()])
             for col in entity.__mapper__.columns:
