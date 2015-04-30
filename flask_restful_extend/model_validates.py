@@ -116,7 +116,7 @@ def complex_validates(validate_rule):
         # )
     }
 
-    for column_names, predicate_refs in validate_rule.iteritems():
+    for column_names, predicate_refs in validate_rule.items():
         for column_name in _to_tuple(column_names):
             ref_dict[column_name] = \
                 ref_dict.get(column_name, tuple()) + _normalize_predicate_refs(predicate_refs)

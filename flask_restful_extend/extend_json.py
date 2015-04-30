@@ -52,6 +52,6 @@ def support_jsonp(api_instance, callback_name_source='callback'):
             callback = request.args.get(callback_name_source, False) if not callable(callback_name_source) \
                 else callback_name_source()
             if callback:
-                resp.set_data(str(callback) + '(' + resp.get_data() + ')')
+                resp.set_data(str(callback) + '(' + resp.get_data().decode("utf-8") + ')')
 
         return resp

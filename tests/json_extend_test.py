@@ -3,7 +3,6 @@ from my_test_case import MyTestCase
 from flask import request
 from flask.ext import restful
 import flask_restful_extend as restful_extend
-from json_encode_manager import CantEncodeObjException
 from datetime import datetime
 import time
 from decimal import Decimal
@@ -29,7 +28,7 @@ class JSONEncoderTestCase(MyTestCase):
         self.json_data = data
         rv = self.client.get('/')
         self.assertEqual(rv.content_type, 'application/json')
-        self.assertEqual(expect_text_result, rv.data)
+        self.assertEqual(expect_text_result, rv.data.decode("utf-8"))
 
     def test_basic(self):
         def gen():
@@ -42,7 +41,7 @@ class JSONEncoderTestCase(MyTestCase):
         samples = [
             (105.132, '105.132'),
             ('abc', '"abc"'),
-            (u'你好', u'"你好"'.encode('utf8')),
+            (u'你好', u'"你好"'),
             (True, 'true'),
             (None, 'null'),
 
@@ -87,11 +86,11 @@ class JSONPTestCase(MyTestCase):
     def verify(self):
         rv = self.client.get('/?{}={}'.format(self.callback_arg_name, self.js_callback))
         self.assertEqual(rv.content_type, 'application/json')
-        self.assertEqual(rv.data, '{}("{}")'.format(self.js_callback, self.return_data))
+        self.assertEqual(rv.data.decode("utf-8"), '{}("{}")'.format(self.js_callback, self.return_data))
 
         rv = self.client.get('/')
         self.assertEqual(rv.content_type, 'application/json')
-        self.assertEqual(rv.data, '"{}"'.format(self.return_data))
+        self.assertEqual(rv.data.decode("utf-8"), '"{}"'.format(self.return_data))
 
     def test_str_source(self):
         restful_extend.support_jsonp(self.api, self.callback_arg_name)

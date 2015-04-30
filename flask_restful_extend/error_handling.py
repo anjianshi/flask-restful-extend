@@ -9,14 +9,16 @@ class ErrorHandledApi(restful.Api):
     instead of:
 
         api = restful.Api(app)
+
+    todo: support Python3 (under python3, Exception has no "message" attribute)
     """
 
     def handle_error(self, e):
-        """Resolve sometimes the error message specified by programmer won't output to user's problem.
+        """Resolve the problem about sometimes error message specified by programmer won't output to user.
 
         Flask-RESTFul's error handler handling format different exceptions has different behavior.
         If we report error by `restful.abort()`,
-         likes `restful.abort(400, "message": "my_msg", "custom_data": "value")`,
+         likes `restful.abort(400, message="my_msg", custom_data="value")`,
          it will output:
 
             Status     400
@@ -41,7 +43,7 @@ class ErrorHandledApi(restful.Api):
             　　　　message: error message
             }
 
-        Exceptions raised by Flask-RESTFul's format was, so error handler can handling it normally:
+        Exceptions raised by Flask-RESTFul's format was like this, so error handler can handling it normally:
             code: status code
             description: predefined error message for this status code
             data: ｛

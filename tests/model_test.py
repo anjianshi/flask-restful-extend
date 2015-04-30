@@ -41,7 +41,7 @@ class ModelValidateTestCase(MyTestCase):
     def verify_exception(self, data):
         with self.assertRaises(ModelInvalid) as cm:
             self.Student(**data)
-        self.assertRegexpMatches(cm.exception.message, '^db model validate failed:')
+        self.assertRegexpMatches(six.text_type(cm.exception), '^db model validate failed:')
 
     def test_predefined_predicates(self):
         self.setup_model({
@@ -227,14 +227,15 @@ class MarshalTestCase(_ModelTestCase):
         def fn():
             return model_data
 
+
         expect_result = copy(expect_result)
+        need_delete = []
         if excludes:
-            for c in excludes:
-                del expect_result[c]
+            need_delete = excludes
         elif only:
-            for k in expect_result.keys():
-                if k not in only:
-                    del expect_result[k]
+            need_delete = [k for k in expect_result.keys() if k not in only]
+        for key in need_delete:
+            del expect_result[key]
 
         self.assertEqual(fn(), expect_result)
 
@@ -525,7 +526,7 @@ class ReqparseTestCase(_ModelTestCase):
                 data=json.dumps(data),
                 content_type="application/json"):
             # model
-            entity = populate_model(self.TestModel, only=[col for col, val in data.iteritems()])
+            entity = populate_model(self.TestModel, only=[col for col, val in data.items()])
             for col in entity.__mapper__.columns:
                 self.assertEqual(
                     getattr(entity, col.name),
@@ -534,7 +535,7 @@ class ReqparseTestCase(_ModelTestCase):
 
             # inst
             entity = self.TestModel()
-            populate_model(entity, only=[col for col, val in data.iteritems()])
+            populate_model(entity, only=[col for col, val in data.items()])
             for col in entity.__mapper__.columns:
                 self.assertEqual(
                     getattr(entity, col.name),

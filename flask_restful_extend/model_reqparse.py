@@ -92,7 +92,7 @@ def populate_model(model_or_inst, excludes=None, only=None):
     parser = make_request_parser(model_or_inst, excludes, only, for_populate=True)
     req_args = parser.parse_args()
 
-    for key, value in req_args.iteritems():
+    for key, value in req_args.items():
         setattr(inst, key, value)
 
     return inst
