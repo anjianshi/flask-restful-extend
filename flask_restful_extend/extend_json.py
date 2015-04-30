@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
 from flask import request, current_app, make_response
-from .json_encode_manager import JSONEncodeManager
+from json_encode_manager import JSONEncodeManager
 import json
 
 
 def enhance_json_encode(api_instance, extra_settings=None):
-    """use custom `JSONEncodeManager` replace default `output_json` function of Flask-RESTful
-    for the advantage of use `JSONEncodeManager`, please see the comments in `json_encode_manager.py`"""
+    """use `JSONEncodeManager` replace default `output_json` function of Flask-RESTful
+    for the advantage of use `JSONEncodeManager`, please see https://github.com/anjianshi/json_encode_manager"""
     api_instance.json_encoder = JSONEncodeManager()
 
     dumps_settings = {} if extra_settings is None else extra_settings

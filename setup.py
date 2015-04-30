@@ -17,7 +17,7 @@ setup(
     packages=['flask_restful_extend'],
     zip_safe=False,
     platforms='any',
-    install_requires=['Flask>=0.10', 'Flask-RESTful>=0.3', 'Flask-SQLAlchemy', "six"],
+    install_requires=['Flask>=0.10', 'Flask-RESTful>=0.3', 'Flask-SQLAlchemy', "six", "json_encode_manager"],
     keywords=['flask', 'python', 'rest', 'api'],
     classifiers=[
         'Intended Audience :: Developers',

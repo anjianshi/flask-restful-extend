@@ -3,7 +3,7 @@ from my_test_case import MyTestCase
 from flask import request
 from flask.ext import restful
 import flask_restful_extend as restful_extend
-from flask_restful_extend.json_encode_manager import CantEncodeObjException
+from json_encode_manager import CantEncodeObjException
 from datetime import datetime
 import time
 from decimal import Decimal
@@ -29,37 +29,9 @@ class JSONEncoderTestCase(MyTestCase):
         self.json_data = data
         rv = self.client.get('/')
         self.assertEqual(rv.content_type, 'application/json')
-        self.assertEqual(rv.data, expect_text_result)
+        self.assertEqual(expect_text_result, rv.data)
 
-    def test_basic_type(self):
-        dataset = [
-            (1, '1'),
-            (500, '500'),
-            (105.132, '105.132'),
-            ('abc', '"abc"'),
-            (u'你好', u'"你好"'.encode('utf8')),
-            (True, 'true'),
-            (None, 'null'),
-        ]
-
-        for data, result in dataset:
-            self.verify(data, result)
-
-    def test_composite_data_type(self):
-        dataset = [
-            ([1, 'a', 10.5], '[1, "a", 10.5]'),
-
-            # can't use a tuple that length < 3 as a return value,
-            # else flask-restful will resolve it as (return_value, http_status_code, other_sth)
-            (('b', 5, True, 1.2), '["b", 5, true, 1.2]'),
-
-            (dict(c=1, b=[1, 'a', True]), '{"c": 1, "b": [1, "a", true]}'),
-        ]
-
-        for data, result in dataset:
-            self.verify(data, result)
-
-    def test_predefined_encoder(self):
+    def test_basic(self):
         def gen():
             l = [1, 2, 3]
             for i in l:
@@ -67,51 +39,31 @@ class JSONEncoderTestCase(MyTestCase):
 
         now = datetime.now()
 
-        dataset = [
+        samples = [
+            (105.132, '105.132'),
+            ('abc', '"abc"'),
+            (u'你好', u'"你好"'.encode('utf8')),
+            (True, 'true'),
+            (None, 'null'),
+
+            ([1, 'a', 10.5], '[1, "a", 10.5]'),
+
             (now, str(time.mktime(now.timetuple()))),
             (Decimal(10.5), '10.5'),
             (gen(), '[1, 2, 3]'),
         ]
 
-        for data, result in dataset:
+        for data, result in samples:
             self.verify(data, result)
 
     def test_custom_encoder(self):
-        # specialized
         class CustomDataType(object):
             def __init__(self, a, b):
                 self.a = a
                 self.b = b
 
-        self.api.json_encoder.register(lambda obj: dict(a=obj.a, b=obj.b), CustomDataType)
-
-        # test if exception throw in common_encoder can be handle well
-        def custom_common_encoder1(obj):
-            raise CantEncodeObjException()
-
-        self.api.json_encoder.register(custom_common_encoder1)
-
-        # common_encoder
-        class CustomDataType2(object):
-            def __init__(self, c, d):
-                self.c = c
-                self.d = d
-
-        def custom_common_encoder(obj):
-            if isinstance(obj, CustomDataType2):
-                return dict(c=obj.c, d=obj.d)
-            else:
-                raise CantEncodeObjException()
-
-        self.api.json_encoder.register(custom_common_encoder)
-
-        dataset = [
-            (CustomDataType(Decimal(10.5), 1), '{"a": 10.5, "b": 1}'),
-            (CustomDataType2(Decimal(20.0), 'a'), '{"c": 20.0, "d": "a"}'),
-        ]
-
-        for data, result in dataset:
-            self.verify(data, result)
+        self.api.json_encoder.register(lambda obj: obj.a + obj.b, CustomDataType)
+        self.verify(CustomDataType(Decimal(10.5), 1), '11.5')
 
 
 class JSONPTestCase(MyTestCase):
