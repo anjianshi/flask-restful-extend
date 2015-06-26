@@ -4,7 +4,7 @@ from sqlalchemy import Column, Integer, String, Float, Boolean, TIMESTAMP, text
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask_restful_extend.model_validates import complex_validates, ModelInvalid
 from flask_restful_extend import register_model_converter, marshal_with_model, quick_marshal
-from flask_restful_extend.model_reqparse import fix_argument_convert, make_request_parser, populate_model, \
+from flask_restful_extend.model_reqparse import make_request_parser, populate_model, \
     RequestPopulator, PopulatorArgument, ArgumentNoValue
 from flask_restful_extend.reqparse_fixed_type import *
 from flask.ext import restful
@@ -227,7 +227,6 @@ class MarshalTestCase(_ModelTestCase):
         def fn():
             return model_data
 
-
         expect_result = copy(expect_result)
         need_delete = []
         if excludes:
@@ -297,21 +296,6 @@ class MarshalTestCase(_ModelTestCase):
 class ReqparseTestCase(_ModelTestCase):
     def __init__(self, *args, **kwargs):
         super(ReqparseTestCase, self).__init__(*args, **kwargs)
-        fix_argument_convert()
-
-    def test_fix_argument_convert(self):
-        with self.fixed_request_context(
-                method='POST',
-                data='{"foo": null}',
-                content_type="application/json"):
-            # 测试对 None 值的处理
-            self.assertEqual(Argument('foo').parse(request)[0], 'None')
-
-            # 测试 type 参数是函数，且 arg value is None 时会不会报错
-            self.assertEqual(
-                Argument('foo', type=lambda v: 'haha').parse(request)[0],
-                'haha'
-            )
 
     def test_fixed_type(self):
         # 测试类型转换
@@ -319,11 +303,6 @@ class ReqparseTestCase(_ModelTestCase):
         d = fixed_datetime(time_str)
         self.assertTrue(isinstance(d, datetime))
         self.assertEqual(str(d), time_str)
-
-        orig_str = 'abc'
-        new_str = fixed_str(orig_str)
-        self.assertTrue(isinstance(new_str, six.text_type))
-        self.assertEqual(new_str, six.text_type(orig_str))
 
         self.assertEqual(fixed_int(987), 987)
         self.assertEqual(fixed_int("850"), 850)
@@ -334,12 +313,6 @@ class ReqparseTestCase(_ModelTestCase):
         self.assertEqual(fixed_float("850.3"), 850.3)
         self.assertIsNone(fixed_float(""))
         self.assertIsNone(fixed_float(u""))
-
-        self.assertEqual(fixed_bool(True), True)
-
-        # 测试 None 值处理
-        for fixed_type in [fixed_datetime, fixed_str, fixed_int, fixed_float, fixed_bool]:
-            self.assertIsNone(fixed_type(None))
 
         # 测试实际调用时能否正确运行
         with self.fixed_request_context(
@@ -464,9 +437,7 @@ class ReqparseTestCase(_ModelTestCase):
         expect_types = [
             # arg index, type
             (0, fixed_int),
-            (1, fixed_str),
             (2, fixed_float),
-            (3, fixed_bool),
             (4, fixed_datetime)
         ]
         for col_index, expect_type in expect_types:

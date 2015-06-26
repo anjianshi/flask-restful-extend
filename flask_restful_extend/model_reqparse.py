@@ -3,7 +3,6 @@ __all__ = ['fix_argument_convert', 'make_request_parser', 'populate_model']
 from flask.ext.restful import reqparse
 from flask import request
 from . import reqparse_fixed_type as fixed_type
-import inspect
 import six
 
 
@@ -11,29 +10,9 @@ _type_dict = {
     # python_type_name: fixed_type
     'datetime': fixed_type.fixed_datetime,
     'date': fixed_type.fixed_date,
-    'str': fixed_type.fixed_str,
     'int': fixed_type.fixed_int,
-    'float': fixed_type.fixed_float,
-    'bool': fixed_type.fixed_bool
+    'float': fixed_type.fixed_float
 }
-
-
-def fix_argument_convert():
-    """Change `reqparse.Argument.convert`'s original behavior.
-
-    No special handle None value for `string_types`
-    (Notice: After this, if you pass None value to a `str Argument`, you will got a string 'None',
-             rather then raise an exception as in other types)
-    """
-    orig_convert = reqparse.Argument.convert
-
-    def _convert(self, value, op):
-        if value is None and inspect.isclass(self.type) and issubclass(self.type, six.string_types):
-            return 'None'
-        else:
-            return orig_convert(self, value, op)
-    reqparse.Argument.convert = _convert
-
 
 def make_request_parser(model_or_inst, excludes=None, only=None, for_populate=False):
     """Pass a `model class` or `model instance` to this function,
