@@ -142,7 +142,7 @@ According to specified model's definition Create a RequestParser
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 source: model_reqparse.py_
 
-required: fix_argument_convert, fixed_type (see next section)
+required: fixed_type (see next section)
 
 .. code-block:: python
 

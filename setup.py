@@ -8,7 +8,7 @@ except ImportError:
 
 setup(
     name='Flask-RESTful-extend',
-    version='0.3.4',
+    version='0.3.5',
     url='https://github.com/anjianshi/flask-restful-extend',
     license='MIT',
     author='anjianshi',
