@@ -50,8 +50,9 @@ class ErrorHandledApi(restful.Api):
             　　　　message: error message
             ｝
 
-        Structure of python's standard Exception:
+        Structure of python2's standard Exception:
             message: error message
+        Exceptions in python3 didn't has hte `message` attribute, but use `str(exception)` can get it's message.
 
         Structure of standard `werkzeug.exceptions.HTTPException` (same as BadRequest):
             code: status code

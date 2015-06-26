@@ -67,7 +67,7 @@ class ErrorHandleTestCase(MyTestCase):
     def test_std_python_exception(self):
         with self.assertRaises(Exception) as cm:
             self.make_exce_request(Exception)
-        self.assertEqual(cm.exception.message, self.error_message)
+        self.assertEqual(str(cm.exception), self.error_message)
 
     def test_custom_python_exception_with_code_attr(self):
         """早期的 flask-restful 的 error_handle 会把所有包含 code attribute 的 exception 作为 HTTPException 来处理，
@@ -78,7 +78,7 @@ class ErrorHandleTestCase(MyTestCase):
 
         with self.assertRaises(CustomException1) as cm:
             self.make_exce_request(CustomException1)
-        self.assertEqual(cm.exception.message, self.error_message)
+        self.assertEqual(str(cm.exception), self.error_message)
 
     def test_unauthorized_handle(self):
         """test has `ErrorHandledApi` disabled the unauthorized dialog"""
