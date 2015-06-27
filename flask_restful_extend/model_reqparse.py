@@ -102,6 +102,8 @@ class RequestPopulator(reqparse.RequestParser):
         if req is None:
             req = request
 
+        req.unparsed_arguments = {}
+
         namespace = self.namespace_class()
 
         for arg in self.args:
