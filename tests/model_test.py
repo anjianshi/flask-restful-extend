@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from my_test_case import MyTestCase
+from .my_test_case import MyTestCase
 from sqlalchemy import Column, Integer, String, Float, Boolean, TIMESTAMP, text
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask_restful_extend.model_validates import complex_validates, ModelInvalid

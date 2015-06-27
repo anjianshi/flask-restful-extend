@@ -5,9 +5,9 @@ sys.path.insert(1, sys.path[0] + '/../')
 
 import unittest
 
-from error_handle_test import ErrorHandleTestCase
-from json_extend_test import JSONEncoderTestCase, JSONPTestCase
-from model_test import ModelValidateTestCase, MarshalTestCase, ReqparseTestCase
+from .error_handle_test import ErrorHandleTestCase
+from .json_extend_test import JSONEncoderTestCase, JSONPTestCase
+from .model_test import ModelValidateTestCase, MarshalTestCase, ReqparseTestCase
 
 """
 from flask.ext import restful

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from my_test_case import MyTestCase
+from .my_test_case import MyTestCase
 from flask import request
 from flask.ext import restful
 import flask_restful_extend as restful_extend
