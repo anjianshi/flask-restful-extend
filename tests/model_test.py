@@ -437,6 +437,7 @@ class ReqparseTestCase(_ModelTestCase):
         expect_types = [
             # arg index, type
             (0, fixed_int),
+            (1, six.text_type),
             (2, fixed_float),
             (4, fixed_datetime)
         ]

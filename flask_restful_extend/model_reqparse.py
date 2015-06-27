@@ -10,6 +10,7 @@ _type_dict = {
     # python_type_name: fixed_type
     'datetime': fixed_type.fixed_datetime,
     'date': fixed_type.fixed_date,
+    'str': six.text_type,
     'int': fixed_type.fixed_int,
     'float': fixed_type.fixed_float
 }
