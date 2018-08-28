@@ -10,10 +10,10 @@ from .json_extend_test import JSONEncoderTestCase, JSONPTestCase
 from .model_test import ModelValidateTestCase, MarshalTestCase, ReqparseTestCase
 
 """
-from flask.ext import restful
+from flask_restful import Resource
 
 
-class MyRoute(restful.Resource):
+class MyRoute(Resource):
     def get(self):
         from flask_restful_extend.extend_model import ModelInvalid
         raise ModelInvalid('abc error')

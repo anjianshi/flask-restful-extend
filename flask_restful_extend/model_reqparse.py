@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 __all__ = ['fix_argument_convert', 'make_request_parser', 'populate_model']
-from flask.ext.restful import reqparse
+from flask_restful import reqparse
 from flask import request
 from . import reqparse_fixed_type as fixed_type
 import six

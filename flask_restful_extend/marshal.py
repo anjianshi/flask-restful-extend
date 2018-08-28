@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from flask.ext.restful import fields as _fields, marshal_with as _marshal_with
+from flask_restful import fields as _fields, marshal_with as _marshal_with
 from functools import wraps
 import time
 import six

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from .my_test_case import MyTestCase
 from flask import request
-from flask.ext import restful
+from flask_restful import Api, Resource
 import flask_restful_extend as restful_extend
 from datetime import datetime
 import time
@@ -15,11 +15,11 @@ class JSONEncoderTestCase(MyTestCase):
         testcase = self
         testcase.json_data = None
 
-        class Routes(restful.Resource):
+        class Routes(Resource):
             def get(self):
                 return testcase.json_data
 
-        self.api = restful.Api(self.app)
+        self.api = Api(self.app)
         self.api.add_resource(Routes, '/')
 
         restful_extend.enhance_json_encode(self.api)
@@ -76,11 +76,11 @@ class JSONPTestCase(MyTestCase):
 
         testcase = self
 
-        class Routes(restful.Resource):
+        class Routes(Resource):
             def get(self):
                 return testcase.return_data
 
-        self.api = restful.Api(self.app)
+        self.api = Api(self.app)
         self.api.add_resource(Routes, '/')
 
     def verify(self):
