@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-from flask.ext import restful
+from flask_restful import Api
 from werkzeug.exceptions import HTTPException
 
-class ErrorHandledApi(restful.Api):
+class ErrorHandledApi(Api):
     """Usage:
         api = restful_extend.ErrorHandledApi(app)
 

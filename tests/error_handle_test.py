@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from .my_test_case import MyTestCase
 from flask import json
-from flask.ext import restful
+from flask_restful import Resource
 import flask_restful_extend as restful_extend
 from werkzeug.exceptions import BadRequest, Unauthorized, HTTPException
 
@@ -14,7 +14,7 @@ class ErrorHandleTestCase(MyTestCase):
         testcase.exception_to_raise = None
         testcase.error_message = "custom_error_msg"
 
-        class Routes(restful.Resource):
+        class Routes(Resource):
             def get(self):
                 raise testcase.exception_to_raise
 

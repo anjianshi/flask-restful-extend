@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 from .my_test_case import MyTestCase
 from sqlalchemy import Column, Integer, String, Float, Boolean, TIMESTAMP, text
-from flask.ext.sqlalchemy import SQLAlchemy
+from flask_sqlalchemy import SQLAlchemy
 from flask_restful_extend.model_validates import complex_validates, ModelInvalid
 from flask_restful_extend import register_model_converter, marshal_with_model, quick_marshal
 from flask_restful_extend.model_reqparse import make_request_parser, populate_model, \
     RequestPopulator, PopulatorArgument, ArgumentNoValue
 from flask_restful_extend.reqparse_fixed_type import *
-from flask.ext import restful
-from flask.ext.restful.reqparse import Argument
-from flask.ext.restful import fields
+from flask_restful import Api, Resource
+from flask_restful.reqparse import Argument
+from flask_restful import fields
 from flask import url_for, request
 from datetime import datetime
 import time
@@ -277,7 +277,7 @@ class MarshalTestCase(_ModelTestCase):
 
         testcase = self
 
-        class Routes(restful.Resource):
+        class Routes(Resource):
             def get(self, model):
                 # test to_python
                 testcase.assertEquals(model, testcase.TestModel.query.get(1))
@@ -288,7 +288,7 @@ class MarshalTestCase(_ModelTestCase):
                     '/2'
                 )
 
-        api = restful.Api(self.app)
+        api = Api(self.app)
         api.add_resource(Routes, '/<TestModel:model>')
         self.client.get('/1')
 
